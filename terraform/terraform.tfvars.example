@@ -1,0 +1,7 @@
+# Kopieer naar terraform.tfvars; staat in .gitignore, nooit in git.
+cloudstack_api_url    = "https://educloud.fontysict.nl/client/api"
+cloudstack_api_key    = ""
+cloudstack_secret_key = ""
+
+zone     = "Eindhoven-Zone"
+template = "Ubuntu 24.04.4 LTS Cloud (Noble Numbat)"
