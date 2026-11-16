@@ -53,3 +53,15 @@ variable "ollama_model" {
   type        = string
   default     = "qwen2.5:3b"
 }
+
+variable "grfics_service_offering" {
+  description = "Compute offering voor de GRFICSv3-testVM. Zonder --profile siem (geen wazuh/zeek) zou dit ruim moeten passen."
+  type        = string
+  default     = "Large Instance"
+}
+
+variable "grfics_siem" {
+  description = "'yes' om ook wazuh en zeek te starten (--profile siem); fors zwaarder. Standaard uit."
+  type        = string
+  default     = "no"
+}
