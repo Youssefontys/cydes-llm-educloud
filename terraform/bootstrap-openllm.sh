@@ -31,7 +31,10 @@ sudo mv /tmp/multi_agent_demo.py /opt/openllm/multi_agent_demo.py
 
 sudo python3 -m venv /opt/openllm/venv
 sudo /opt/openllm/venv/bin/pip install --upgrade pip
-sudo /opt/openllm/venv/bin/pip install "mcp[cli]" crewai requests
+# litellm erbij: crewai's LLM-klasse valt daar intern op terug, maar trekt het niet als harde
+# dependency binnen; zonder dit faalt elke CrewAI-aanroep met "Fallback to LiteLLM is not
+# available" (zo ook gezien, pas bij het echt draaien van de demo, niet bij het importeren).
+sudo /opt/openllm/venv/bin/pip install "mcp[cli]" crewai litellm requests
 
 # OLLAMA_MODEL blijvend beschikbaar voor wie hier later inlogt, niet alleen voor deze sessie.
 echo "export OLLAMA_MODEL=${OLLAMA_MODEL}" | sudo tee /etc/profile.d/openllm.sh > /dev/null
