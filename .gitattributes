@@ -1,0 +1,4 @@
+# Scripts die op een Linux-VM draaien, altijd met LF: met CRLF start Linux ze niet ("required file not found").
+*.sh text eol=lf
+*.py text eol=lf
+*.tf text eol=lf
