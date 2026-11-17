@@ -1,0 +1,6250 @@
+{
+ "kind": "grfics",
+ "created": "2026-11-17T13:25:25+00:00",
+ "source": {
+  "pcap_sha256": "3059833f0cd5dcd7865a4ac134ff3d06b68cb43772542da4670e2c2359ea9748",
+  "transactions": 24606,
+  "grfics_commit": "586308fb42f698253a6074218b89573c92bafaa7",
+  "writes": false,
+  "scenarios": [
+   "ews-device-id",
+   "ews-out-of-map",
+   "kali-read"
+  ],
+  "window_seconds": 8.0
+ },
+ "policy": {
+  "servers": {
+   "192.168.95.10": {
+    "role": "field device 1",
+    "clients": {
+     "192.168.95.2": {
+      "role": "PLC",
+      "write": true
+     }
+    },
+    "functions": [
+     4,
+     16
+    ],
+    "map": {
+     "holding_registers": [
+      1,
+      1
+     ],
+     "input_registers": [
+      1,
+      2
+     ]
+    }
+   },
+   "192.168.95.11": {
+    "role": "field device 2",
+    "clients": {
+     "192.168.95.2": {
+      "role": "PLC",
+      "write": true
+     }
+    },
+    "functions": [
+     4,
+     16
+    ],
+    "map": {
+     "holding_registers": [
+      1,
+      1
+     ],
+     "input_registers": [
+      1,
+      2
+     ]
+    }
+   },
+   "192.168.95.12": {
+    "role": "field device 3",
+    "clients": {
+     "192.168.95.2": {
+      "role": "PLC",
+      "write": true
+     }
+    },
+    "functions": [
+     4,
+     16
+    ],
+    "map": {
+     "holding_registers": [
+      1,
+      1
+     ],
+     "input_registers": [
+      1,
+      2
+     ]
+    }
+   },
+   "192.168.95.13": {
+    "role": "field device 4",
+    "clients": {
+     "192.168.95.2": {
+      "role": "PLC",
+      "write": true
+     }
+    },
+    "functions": [
+     4,
+     16
+    ],
+    "map": {
+     "holding_registers": [
+      1,
+      1
+     ],
+     "input_registers": [
+      1,
+      2
+     ]
+    }
+   },
+   "192.168.95.14": {
+    "role": "field device 5",
+    "clients": {
+     "192.168.95.2": {
+      "role": "PLC",
+      "write": true
+     }
+    },
+    "functions": [
+     4,
+     16
+    ],
+    "map": {
+     "holding_registers": [
+      1,
+      1
+     ],
+     "input_registers": [
+      1,
+      2
+     ]
+    }
+   },
+   "192.168.95.15": {
+    "role": "field device 6",
+    "clients": {
+     "192.168.95.2": {
+      "role": "PLC",
+      "write": true
+     }
+    },
+    "functions": [
+     4,
+     16
+    ],
+    "map": {
+     "holding_registers": [
+      1,
+      1
+     ],
+     "input_registers": [
+      1,
+      3
+     ]
+    }
+   },
+   "192.168.95.2": {
+    "role": "PLC",
+    "clients": {
+     "192.168.90.107": {
+      "role": "HMI",
+      "write": false
+     },
+     "192.168.95.5": {
+      "role": "engineering workstation",
+      "write": true
+     }
+    },
+    "functions": [
+     1,
+     3,
+     4,
+     5,
+     6,
+     15,
+     16
+    ],
+    "map": {
+     "coils": [
+      0,
+      40
+     ],
+     "holding_registers": [
+      10,
+      13
+     ],
+     "input_registers": [
+      100,
+      112
+     ]
+    }
+   }
+  },
+  "rules": {
+   "unknown_client": "Only the clients listed for a server may send it Modbus requests.",
+   "forbidden_function": "A client may only use the function codes listed for that server.",
+   "illegal_address": "A request may only touch registers inside the server's register map (get_register_map).",
+   "unauthorized_write": "Only clients marked as writer may use a write function code (5, 6, 15, 16, 23)."
+  }
+ },
+ "cases": [
+  {
+   "id": "grfics-001",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      5306
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-002",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      33280
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      24902
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.1,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.1,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.1,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-003",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      46878
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-004",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65313
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-005",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      54400
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      61984
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.09,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-006",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      2176
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      41896
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-007",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      53760
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      20562
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-008",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      5249
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-009",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      10206
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.59,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.64,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-010",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      29652
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.01,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.65,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.6,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.61,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 23
+    }
+   ]
+  },
+  {
+   "id": "grfics-011",
+   "label": "valid",
+   "transactions": [
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      42240
+     ],
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      55267
+     ],
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 2.57,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 2.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 4.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 4.62,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 6.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 6.58,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 6.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 18
+    }
+   ]
+  },
+  {
+   "id": "grfics-012",
+   "label": "unknown_client",
+   "transactions": [
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      45440
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      32997
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.02,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.48,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.49,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.54,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.48,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.5,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.08,
+     "src": "192.168.90.6",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.48,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.5,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 4.55,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.48,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.51,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 6.56,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-013",
+   "label": "forbidden_function",
+   "transactions": [
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      3640
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.04,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.27,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.31,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.36,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.27,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.32,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.37,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.06,
+     "src": "192.168.95.5",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 43,
+     "addr": null,
+     "count": null,
+     "values": null,
+     "exception": 1,
+     "i": 18
+    },
+    {
+     "t": 4.27,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.32,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 4.37,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.27,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.28,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 6.33,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-014",
+   "label": "illegal_address",
+   "transactions": [
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      18769
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 0.08,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 0.13,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.06,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 2.08,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 2.13,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.05,
+     "src": "192.168.95.5",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 500,
+     "count": 10,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 4.06,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 4.09,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 4.14,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.06,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 6.09,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 6.14,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-015",
+   "label": "unknown_client",
+   "transactions": [
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      3840
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      59414
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.05,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 1.85,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 1.9,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 1.95,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 3.85,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 3.85,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 3.9,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.04,
+     "src": "192.168.90.6",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 5.85,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 5.85,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 5.9,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 7.85,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 7.86,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 7.91,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-016",
+   "label": "forbidden_function",
+   "transactions": [
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      62795
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 1.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 1.66,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 1.71,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 3.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 3.66,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 3.71,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.04,
+     "src": "192.168.95.5",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 43,
+     "addr": null,
+     "count": null,
+     "values": null,
+     "exception": 1,
+     "i": 18
+    },
+    {
+     "t": 5.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 5.67,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 5.72,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 7.63,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 7.67,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 7.72,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-017",
+   "label": "illegal_address",
+   "transactions": [
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.06,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      29295
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 1.42,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 1.42,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 1.47,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 3.42,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 3.42,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 3.47,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.04,
+     "src": "192.168.95.5",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 500,
+     "count": 10,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 5.42,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 5.43,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 5.48,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 7.42,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 7.43,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 7.48,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-018",
+   "label": "unknown_client",
+   "transactions": [
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      2419
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 1.2,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 1.23,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 1.28,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 3.2,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 3.24,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 3.29,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.04,
+     "src": "192.168.90.6",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 18
+    },
+    {
+     "t": 5.2,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 5.24,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 5.29,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 7.2,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 7.25,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 7.3,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-019",
+   "label": "forbidden_function",
+   "transactions": [
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.10",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      65535
+     ],
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.11",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.12",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.13",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      21516
+     ],
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 2,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 0.07,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 0.99,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 1.0,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 1.05,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 2.99,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 15
+    },
+    {
+     "t": 3.0,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 16
+    },
+    {
+     "t": 3.05,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 17
+    },
+    {
+     "t": 4.04,
+     "src": "192.168.95.5",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 43,
+     "addr": null,
+     "count": null,
+     "values": null,
+     "exception": 1,
+     "i": 18
+    },
+    {
+     "t": 4.99,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 19
+    },
+    {
+     "t": 5.01,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 20
+    },
+    {
+     "t": 5.06,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 21
+    },
+    {
+     "t": 6.99,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 22
+    },
+    {
+     "t": 7.01,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 23
+    },
+    {
+     "t": 7.06,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 24
+    }
+   ]
+  },
+  {
+   "id": "grfics-020",
+   "label": "illegal_address",
+   "transactions": [
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.14",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 0
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 4,
+     "addr": 1,
+     "count": 3,
+     "values": null,
+     "exception": null,
+     "i": 1
+    },
+    {
+     "t": 0.0,
+     "src": "192.168.95.2",
+     "dst": "192.168.95.15",
+     "unit": 247,
+     "fc": 16,
+     "addr": 1,
+     "count": 1,
+     "values": [
+      0
+     ],
+     "exception": null,
+     "i": 2
+    },
+    {
+     "t": 0.78,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 3
+    },
+    {
+     "t": 0.81,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 4
+    },
+    {
+     "t": 0.86,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 5
+    },
+    {
+     "t": 2.78,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 6
+    },
+    {
+     "t": 2.82,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 7
+    },
+    {
+     "t": 2.87,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 8
+    },
+    {
+     "t": 4.04,
+     "src": "192.168.95.5",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 500,
+     "count": 10,
+     "values": null,
+     "exception": null,
+     "i": 9
+    },
+    {
+     "t": 4.78,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 10
+    },
+    {
+     "t": 4.82,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 11
+    },
+    {
+     "t": 4.87,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 12
+    },
+    {
+     "t": 6.77,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 1,
+     "addr": 0,
+     "count": 41,
+     "values": null,
+     "exception": null,
+     "i": 13
+    },
+    {
+     "t": 6.78,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 4,
+     "addr": 100,
+     "count": 13,
+     "values": null,
+     "exception": null,
+     "i": 14
+    },
+    {
+     "t": 6.83,
+     "src": "192.168.90.107",
+     "dst": "192.168.95.2",
+     "unit": 1,
+     "fc": 3,
+     "addr": 10,
+     "count": 4,
+     "values": null,
+     "exception": null,
+     "i": 15
+    }
+   ]
+  }
+ ]
+}

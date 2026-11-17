@@ -35,8 +35,8 @@ def run():
     if deployment.INTERACTIVE:
         choices["openllm_service_offering"] = pick_offering(choices["openllm_service_offering"])
     if deployment.INTERACTIVE:
-        print("\n🏭 GRFICSv3 is een nagebootste fabriek met een PLC. De benchmark heeft hem niet nodig (de cases zijn nagemaakt\n"
-              "   verkeer); het is een tweede, grote VM voor demo's en echt verkeer.")
+        print("\n🏭 GRFICSv3 is een nagebootste fabriek met een PLC: de bron van de echte cases (deployment.py data). Zonder\n"
+              "   GRFICS draait de benchmark alleen op een dataset die er al is, of op nagemaakt verkeer. Het is een tweede, grote VM.")
         choices["enable_grfics"] = yes("GRFICSv3 erbij?", "y" if choices["enable_grfics"] else "n")
     if deployment.INTERACTIVE:
         print("\n🔐 Wie mag bij SSH? De VM krijgt een publiek adres. Geef je eigen adres of het bereik van de VPN,\n"
@@ -59,5 +59,6 @@ def run():
         stop("terraform apply werkte niet, of je typte geen yes; de melding staat hierboven.\n"
              "   💡 Opnieuw draaien gaat verder waar het ophield.")
     print(f"\n🎉 Klaar! De VM met Ollama staat op {deployment.output('public_ip')}")
+    print("💡 Een dataset uit GRFICS: python scripts/deployment.py data")
     print("💡 De benchmark draaien: python scripts/deployment.py bench")
     print("💡 Alles weer weg, zodat het geen capaciteit kost: python scripts/deployment.py undo\n")

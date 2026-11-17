@@ -13,10 +13,10 @@ from mcp.client.stdio import stdio_client
 
 
 class McpBridge:
-    def __init__(self, cases, seed):
+    def __init__(self, dataset):
         self._loop = asyncio.new_event_loop()
         self._ready, self._stop, self._error = threading.Event(), None, None
-        self._params = StdioServerParameters(command=sys.executable, args=["-m", "bench.mcp_server", "--cases", str(cases), "--seed", str(seed)],
+        self._params = StdioServerParameters(command=sys.executable, args=["-m", "bench.mcp_server", *dataset.server_args()],
                                              cwd=str(pathlib.Path(__file__).resolve().parent.parent))
         self._thread = threading.Thread(target=self._loop.run_until_complete, args=(self._serve(),), daemon=True)
         self._thread.start()

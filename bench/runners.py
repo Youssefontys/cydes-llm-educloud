@@ -1,29 +1,31 @@
-"""De vier varianten die dezelfde taak met dezelfde tools doen; alleen de manier van aanroepen verschilt.
+"""De vijf varianten die dezelfde taak doen; alleen de manier waarop het model bij het bewijs komt, verschilt.
 
+  direct   variant 0, zonder tools: het beleid, de registers en alle transacties staan in de prompt, en het model geeft
+           in één antwoord het oordeel. De referentie: wat levert het ophalen met tools op, en wat kost het?
   manual   één agent, function calling met de hand: de tools staan als tekst in de prompt en het model antwoordt met
-           JSON die deze code zelf ontleedt (deelvraag 1).
+           JSON die deze code zelf ontleedt (deelvraag 1, variant A).
   native   één agent, met de tool-aanroepen van Ollama zelf (het veld "tools"). De tussenstap: zo is te zien wat het
            verschil tussen manual en mcp veroorzaakt.
-  mcp      als native, maar de tools komen van een MCP-server en worden daar uitgevoerd (deelvraag 2).
+  mcp      als native, maar de tools komen van een MCP-server en worden daar uitgevoerd (deelvraag 2, variant B).
   multi    twee agents: een analist die het verkeer bekijkt en bevindingen doorgeeft, en een reviewer die ze
-           controleert en het oordeel geeft (deelvraag 3). Zonder framework: twee keer dezelfde lus.
+           controleert en het oordeel geeft (deelvraag 3, variant C). Zonder framework: twee keer dezelfde lus.
 
 Alleen de standaardbibliotheek, behalve mcp voor de variant mcp."""
 import json
 import os
 import time
-import urllib.error
 import urllib.request
 
-from . import modbus
+from .datasets import REPORT, schema
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 MAX_STEPS = 12
 TASK = ("You validate Modbus/TCP traffic against a security policy. Read the policy, read ALL transactions of the case "
         "(page through them until you have seen the total), and decide whether the traffic is valid or which single rule it breaks.")
+VARIANTS = ("direct", "manual", "native", "mcp", "multi")
 
 
-def ollama(path, body=None, timeout=600):
+def ollama(path, body=None, timeout=900):
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(OLLAMA_URL + path, data=data, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -59,19 +61,41 @@ def chat(model, messages, stats, options, tools=None, json_mode=False):
 class LocalTools:
     """De tools als gewone functies in dit proces."""
 
-    def __init__(self, case):
-        self.case = case
+    def __init__(self, dataset, case):
+        self.dataset, self.case = dataset, case
 
     def specs(self):
-        return [modbus.schema(t) for t in modbus.TOOLS]
+        return [schema(t) for t in self.dataset.tools()]
 
     def call(self, name, arguments):
-        return modbus.call_tool(self.case, name, arguments)
+        return self.dataset.call(self.case, name, arguments)
+
+
+def _verdict(reply, dataset):
+    verdict = reply.get("verdict") if isinstance(reply, dict) else None
+    return verdict if verdict in dataset.verdicts else None
+
+
+def direct(model, dataset, case, stats, options):
+    """Variant 0: geen tools, alles in de prompt, één antwoord."""
+    verdicts = ", ".join(dataset.verdicts)
+    messages = [{"role": "system", "content": "You validate Modbus/TCP traffic against a security policy. All evidence is below. "
+                 f'Reply with one JSON object and nothing else: {{"verdict": "<one of: {verdicts}>", "reason": "<one sentence>"}}.'},
+                {"role": "user", "content": f"Validate {case['id']}.\n\n" + json.dumps(dataset.evidence(case))}]
+    content = chat(model, messages, stats, options, json_mode=True).get("content", "")
+    try:
+        reply = json.loads(content)
+    except ValueError:
+        stats["invalid_calls"] += 1
+        return None
+    if _verdict(reply, dataset) is None:
+        stats["invalid_calls"] += 1
+    return reply
 
 
 def manual_loop(model, toolbox, final, stats, options, system, user):
     """Function calling met de hand: de tools als tekst, het antwoord als JSON die wij zelf ontleden."""
-    listing = json.dumps([s["function"] for s in toolbox.specs()] + [modbus.schema(final)["function"]], indent=1)
+    listing = json.dumps([s["function"] for s in toolbox.specs()] + [schema(final)["function"]], indent=1)
     messages = [{"role": "system", "content": f"{system}\n\nYou have these tools:\n{listing}\n\nReply with exactly one JSON object and "
                  'nothing else: {"tool": "<name>", "arguments": {...}}. Call one tool per reply. Finish with the tool ' + final["name"] + "."},
                 {"role": "user", "content": user}]
@@ -98,7 +122,7 @@ def manual_loop(model, toolbox, final, stats, options, system, user):
 
 def native_loop(model, toolbox, final, stats, options, system, user):
     """De tool-aanroepen van Ollama zelf: het model krijgt de schema's en antwoordt met tool_calls."""
-    tools = toolbox.specs() + [modbus.schema(final)]
+    tools = toolbox.specs() + [schema(final)]
     messages = [{"role": "system", "content": f"{system} Use the tools. Call one tool at a time. Finish by calling {final['name']}."},
                 {"role": "user", "content": user}]
     for _ in range(MAX_STEPS):
@@ -120,31 +144,32 @@ def native_loop(model, toolbox, final, stats, options, system, user):
             stats["tool_calls"] += 1
             if name == final["name"] and isinstance(arguments, dict):
                 return arguments
-            result, ok = toolbox.call(name, arguments if isinstance(arguments, dict) else {}) if isinstance(arguments, dict) else ({"error": "arguments must be an object"}, False)
+            result, ok = toolbox.call(name, arguments) if isinstance(arguments, dict) else ({"error": "arguments must be an object"}, False)
             stats["invalid_calls"] += 0 if ok else 1
             messages.append({"role": "tool", "tool_name": name or "", "content": json.dumps(result)})
     return None
 
 
-def run_case(variant, model, case, options, mcp_bridge=None):
+def run_case(variant, model, dataset, case, options, mcp_bridge=None):
     """Eén case in één variant. Geeft het oordeel van het model (of None) en wat het kostte."""
-    stats = Stats()
+    stats, submit = Stats(), dataset.submit()
     user = f"Validate {case['id']}."
-    if variant == "manual":
-        answer = manual_loop(model, LocalTools(case), modbus.SUBMIT, stats, options, TASK, user)
+    if variant == "direct":
+        answer = direct(model, dataset, case, stats, options)
+    elif variant == "manual":
+        answer = manual_loop(model, LocalTools(dataset, case), submit, stats, options, TASK, user)
     elif variant == "native":
-        answer = native_loop(model, LocalTools(case), modbus.SUBMIT, stats, options, TASK, user)
+        answer = native_loop(model, LocalTools(dataset, case), submit, stats, options, TASK, user)
     elif variant == "mcp":
-        answer = native_loop(model, mcp_bridge.for_case(case), modbus.SUBMIT, stats, options, TASK, user)
+        answer = native_loop(model, mcp_bridge.for_case(case), submit, stats, options, TASK, user)
     elif variant == "multi":
-        findings = native_loop(model, LocalTools(case), modbus.REPORT, stats, options,
+        findings = native_loop(model, LocalTools(dataset, case), REPORT, stats, options,
                                TASK + " You are the analyst: you do not give the verdict, you report what you found.", user)
         handed = (findings or {}).get("findings") or "The analyst gave no findings."
-        answer = native_loop(model, LocalTools(case), modbus.SUBMIT, stats, options,
+        answer = native_loop(model, LocalTools(dataset, case), submit, stats, options,
                              TASK + " You are the reviewer: an analyst looked at this case first. Check the analyst's findings "
                              "against the policy and the transactions before you decide; the analyst can be wrong.",
                              f"{user}\n\nFindings of the analyst:\n{handed}")
     else:
         raise ValueError(f"onbekende variant {variant!r}")
-    verdict = (answer or {}).get("verdict")
-    return (verdict if isinstance(verdict, str) else None), stats
+    return _verdict(answer, dataset), stats

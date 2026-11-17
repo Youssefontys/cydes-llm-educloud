@@ -82,11 +82,12 @@ variable "ollama_models" {
   }
 }
 
-# De benchmark heeft GRFICS niet nodig: de cases zijn nagemaakt verkeer. Uit spaart een grote VM.
+# GRFICS is de bron van de echte cases (deployment.py data). Zonder draait de benchmark alleen op een dataset die er
+# al is, of op nagemaakt verkeer; uit spaart een grote VM.
 variable "enable_grfics" {
-  description = "true zet ook een VM met GRFICSv3 neer, voor echt verkeer en demo's."
+  description = "true zet ook een VM met GRFICSv3 neer, de bron van de echte cases."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "grfics_service_offering" {
