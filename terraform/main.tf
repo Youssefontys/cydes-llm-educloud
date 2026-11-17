@@ -1,10 +1,9 @@
-# Stap 1 van de test: een eigen isolated netwerk op Educloud, los van het bestaande Shared
-# netwerk (DHCP-S6-7-Internet-Only) en los van het groepsproject "Advanced Cyber CyDES LLM".
-# Eerst alleen het netwerk, de firewall/port-forward, en één kleine testinstance om te
-# bevestigen dat SSH er echt doorheen komt, voor er een zwaardere VM op komt.
+# Een eigen isolated netwerk op Educloud (Apache CloudStack) met één VM voor Ollama en de benchmark, en als je dat
+# aanzet een tweede VM met GRFICSv3. Los van het Shared netwerk en van het groepsproject. De VM's hebben geen GPU.
+# Start dit via scripts/deployment.py: dat vraagt de keuzes en schrijft ze naar deployment.auto.tfvars.json.
 #
-# Resource-schema's (cloudstack_network, cloudstack_firewall, cloudstack_port_forward)
-# gecontroleerd tegen apache/cloudstack-terraform-provider op GitHub, 2026-11-15.
+# De schema's van cloudstack_network, cloudstack_firewall en cloudstack_port_forward zijn gecontroleerd tegen
+# apache/cloudstack-terraform-provider op GitHub (2026-11-15).
 
 terraform {
   required_version = ">= 1.5.0"
@@ -22,12 +21,18 @@ provider "cloudstack" {
   secret_key = var.cloudstack_secret_key
 }
 
+locals {
+  # Verandert er iets aan de benchmark, dan zet Terraform de nieuwe bestanden op de VM.
+  bench_files = sort(concat(tolist(fileset("${path.module}/../bench", "*.py")), ["../requirements.txt"]))
+  bench_hash  = sha1(join("", [for f in local.bench_files : filesha1("${path.module}/../bench/${f}")]))
+}
+
 resource "cloudstack_network" "isolated" {
   name             = var.network_name
   cidr             = var.network_cidr
   network_offering = "IsolatedNetworkOfferingWithSourceNAT - 400MBit"
   zone             = var.zone
-  # Zet meteen een public/source-NAT IP erop; die heb je nodig om er bij SSH te kunnen komen.
+  # Een publiek source-NAT-adres; zonder kom je er met SSH niet bij.
   source_nat_ip = true
 }
 
@@ -35,32 +40,30 @@ resource "cloudstack_firewall" "isolated" {
   ip_address_id = cloudstack_network.isolated.source_nat_ip_id
 
   rule {
-    cidr_list = ["0.0.0.0/0"]
+    cidr_list = var.ssh_cidrs
     protocol  = "tcp"
-    # 22: openllm. 2222: grfics-test (zelfde publieke IP, dus een andere poort per VM).
-    ports = ["22", "2222"]
+    # 22: de VM met Ollama. 2222: de VM met GRFICS, op hetzelfde publieke adres; alleen open als die er is.
+    ports = var.enable_grfics ? ["22", "2222"] : ["22"]
   }
 }
 
-# Zelfde sleutel als dependency-track-educloud, al geregistreerd op dit account onder die naam.
-# CloudStack weigert dezelfde public key twee keer te registreren, dus hergebruik de naam
-# in plaats van een nieuwe cloudstack_ssh_keypair-resource voor hetzelfde keybestand te maken.
 resource "cloudstack_instance" "openllm" {
   name             = "${var.network_name}-openllm"
   service_offering = var.openllm_service_offering
   template         = var.template
   zone             = var.zone
   network_id       = cloudstack_network.isolated.id
-  keypair          = "dependency-track-admin"
+  keypair          = var.keypair
 }
 
 resource "cloudstack_instance" "grficstest" {
+  count            = var.enable_grfics ? 1 : 0
   name             = "${var.network_name}-grfics"
   service_offering = var.grfics_service_offering
   template         = var.template
   zone             = var.zone
   network_id       = cloudstack_network.isolated.id
-  keypair          = "dependency-track-admin"
+  keypair          = var.keypair
 }
 
 resource "cloudstack_port_forward" "ssh" {
@@ -73,11 +76,14 @@ resource "cloudstack_port_forward" "ssh" {
     virtual_machine_id = cloudstack_instance.openllm.id
   }
 
-  forward {
-    protocol           = "tcp"
-    private_port       = 22
-    public_port        = 2222
-    virtual_machine_id = cloudstack_instance.grficstest.id
+  dynamic "forward" {
+    for_each = cloudstack_instance.grficstest
+    content {
+      protocol           = "tcp"
+      private_port       = 22
+      public_port        = 2222
+      virtual_machine_id = forward.value.id
+    }
   }
 
   depends_on = [cloudstack_firewall.isolated]
@@ -86,9 +92,11 @@ resource "cloudstack_port_forward" "ssh" {
 resource "null_resource" "bootstrap_openllm" {
   depends_on = [cloudstack_port_forward.ssh]
 
+  # Opnieuw bij een nieuwe VM, andere modellen of een gewijzigde benchmark; het script mag vaker draaien.
   triggers = {
     instance_id = cloudstack_instance.openllm.id
-    model       = var.ollama_model
+    models      = var.ollama_models
+    bench       = local.bench_hash
   }
 
   connection {
@@ -99,35 +107,42 @@ resource "null_resource" "bootstrap_openllm" {
     timeout     = "3m"
   }
 
-  provisioner "file" {
-    source      = "${path.module}/../scripts/mcp_server.py"
-    destination = "/tmp/mcp_server.py"
+  # Eerst leeg: de file-provisioner zet een map anders ín een map die er al staat.
+  provisioner "remote-exec" {
+    inline = ["rm -rf /tmp/cydes && mkdir -p /tmp/cydes"]
   }
 
   provisioner "file" {
-    source      = "${path.module}/../scripts/multi_agent_demo.py"
-    destination = "/tmp/multi_agent_demo.py"
+    source      = "${path.module}/../bench"
+    destination = "/tmp/cydes/bench"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/../requirements.txt"
+    destination = "/tmp/cydes/requirements.txt"
   }
 
   provisioner "file" {
     source      = "${path.module}/bootstrap-openllm.sh"
-    destination = "/tmp/bootstrap-openllm.sh"
+    destination = "/tmp/cydes/bootstrap-openllm.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/bootstrap-openllm.sh",
-      # "sudo VAR=x script" probeert "VAR=x" als programma te starten; via bash -c wel goed.
-      "sudo bash -c 'OLLAMA_MODEL=${var.ollama_model} /tmp/bootstrap-openllm.sh'",
+      "chmod +x /tmp/cydes/bootstrap-openllm.sh",
+      # "sudo VAR=x script" start "VAR=x" als programma; via bash -c gaat het goed. De waarde is in variables.tf
+      # beperkt tot tekens van een modelnaam, dus er kan geen opdracht in staan.
+      "sudo bash -c 'OLLAMA_MODELS=${var.ollama_models} /tmp/cydes/bootstrap-openllm.sh'",
     ]
   }
 }
 
 resource "null_resource" "bootstrap_grfics" {
+  count      = var.enable_grfics ? 1 : 0
   depends_on = [cloudstack_port_forward.ssh]
 
   triggers = {
-    instance_id = cloudstack_instance.grficstest.id
+    instance_id = cloudstack_instance.grficstest[0].id
   }
 
   connection {
@@ -150,4 +165,15 @@ resource "null_resource" "bootstrap_grfics" {
       "sudo bash -c 'GRFICS_SIEM=${var.grfics_siem} /tmp/bootstrap-grfics.sh'",
     ]
   }
+}
+
+# Een omgeving van vóór enable_grfics houdt haar GRFICS-VM in plaats van hem opnieuw te maken (als enable_grfics aan staat).
+moved {
+  from = cloudstack_instance.grficstest
+  to   = cloudstack_instance.grficstest[0]
+}
+
+moved {
+  from = null_resource.bootstrap_grfics
+  to   = null_resource.bootstrap_grfics[0]
 }
