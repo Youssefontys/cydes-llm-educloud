@@ -1,0 +1,3 @@
+# Alleen voor de variant mcp; de rest van de benchmark gebruikt alleen de standaardbibliotheek.
+# Vast op een versie: de benchmark is getest met 2.3.0, en 2.x is niet uitwisselbaar met 1.x (FastMCP heet er MCPServer).
+mcp==2.3.0

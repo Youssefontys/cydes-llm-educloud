@@ -1,45 +1,49 @@
 #!/bin/bash
-# Uitgevoerd door de remote-exec provisioner in main.tf, na de file-provisioners. Gaat uit
-# van Ubuntu. Verwacht OLLAMA_MODEL als omgevingsvariabele (door Terraform meegegeven).
-# Status: geschreven, nog niet tegen een echte VM gedraaid; de mcp/crewai-versies in requirements
-# zijn niet vastgepind, dus check bij problemen eerst of een package-update de boosdoener is.
+# Zet Ollama en de benchmark op de VM. Uitgevoerd door de remote-exec provisioner in main.tf, nadat de bestanden in
+# /tmp/cydes staan. Gaat uit van Ubuntu. Verwacht OLLAMA_MODELS: modelnamen gescheiden door komma's.
+# Mag vaker draaien: bij andere modellen of een gewijzigde benchmark draait Terraform het opnieuw.
 set -eu
 
-OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:3b}"
+OLLAMA_MODELS="${OLLAMA_MODELS:-qwen2.5:3b}"
 
-# Cloud-init doet zelf nog apt-get op de eerste boot; SSH staat vaak al open voor dat klaar is.
-# Zonder dit wachten botst onze apt-get met die van cloud-init op de apt-lock (zo ook gezien).
-# "|| true": cloud-init kan een niet-nul status geven voor een onschuldige waarschuwing terwijl
-# hij wel degelijk klaar is ("status: done" stond er al); alleen wachten tot hij stopt, verder
-# niets.
-sudo cloud-init status --wait || true
+# Cloud-init doet bij de eerste start zelf nog apt-get; zonder wachten botst dat op de apt-lock. "|| true": cloud-init
+# kan een niet-nul status geven voor een onschuldige waarschuwing terwijl het wel klaar is.
+cloud-init status --wait || true
 
-sudo apt-get update -y
-sudo apt-get install -y python3 python3-venv python3-pip curl
+apt-get update -y
+apt-get install -y python3 python3-venv python3-pip curl
 
-# Officiele installer; zet ook een systemd-service (ollama.service) neer, CPU-only als er
-# geen GPU gevonden wordt, dat is hier altijd het geval op Educloud.
-curl -fsSL https://ollama.com/install.sh | sudo sh
-sudo systemctl enable --now ollama
+# Het installatiescript van Ollama zelf; het zet ook de dienst ollama.service neer. Zonder GPU draait alles op de CPU.
+# Niet vast op een versie: de benchmark legt de versie die er staat vast bij elke meting.
+if ! command -v ollama > /dev/null; then
+  curl -fsSL https://ollama.com/install.sh | sh
+fi
+systemctl enable --now ollama
 
-echo "Model ophalen: ${OLLAMA_MODEL} (kan even duren)..."
-ollama pull "${OLLAMA_MODEL}"
+# Even wachten tot de dienst antwoordt; direct na het starten weigert hij nog verbindingen.
+for _ in $(seq 30); do
+  curl -fsS http://127.0.0.1:11434/api/version > /dev/null && break
+  sleep 2
+done
 
-sudo mkdir -p /opt/openllm
-sudo mv /tmp/mcp_server.py /opt/openllm/mcp_server.py
-sudo mv /tmp/multi_agent_demo.py /opt/openllm/multi_agent_demo.py
+IFS=',' read -ra MODELS <<< "${OLLAMA_MODELS}"
+for model in "${MODELS[@]}"; do
+  echo "Model ophalen: ${model} (kan even duren)..."
+  ollama pull "${model}"
+done
 
-sudo python3 -m venv /opt/openllm/venv
-sudo /opt/openllm/venv/bin/pip install --upgrade pip
-# litellm erbij: crewai's LLM-klasse valt daar intern op terug, maar trekt het niet als harde
-# dependency binnen; zonder dit faalt elke CrewAI-aanroep met "Fallback to LiteLLM is not
-# available" (zo ook gezien, pas bij het echt draaien van de demo, niet bij het importeren).
-sudo /opt/openllm/venv/bin/pip install "mcp[cli]" crewai litellm requests
+mkdir -p /opt/cydes/results
+rm -rf /opt/cydes/bench
+mv /tmp/cydes/bench /opt/cydes/bench
+mv /tmp/cydes/requirements.txt /opt/cydes/requirements.txt
 
-# OLLAMA_MODEL blijvend beschikbaar voor wie hier later inlogt, niet alleen voor deze sessie.
-echo "export OLLAMA_MODEL=${OLLAMA_MODEL}" | sudo tee /etc/profile.d/openllm.sh > /dev/null
-sudo chown -R ubuntu:ubuntu /opt/openllm
+if [ ! -x /opt/cydes/venv/bin/python ]; then
+  python3 -m venv /opt/cydes/venv
+fi
+/opt/cydes/venv/bin/pip install --quiet --upgrade pip
+/opt/cydes/venv/bin/pip install --quiet -r /opt/cydes/requirements.txt
+chown -R ubuntu:ubuntu /opt/cydes
 
-echo "Klaar. Model ${OLLAMA_MODEL} staat in Ollama (CPU-only)."
-echo "MCP-server (stdio) testen:   cd /opt/openllm && venv/bin/python3 mcp_server.py"
-echo "Multi-agent-demo draaien:    cd /opt/openllm && venv/bin/python3 multi_agent_demo.py \"een onderwerp\""
+echo "Klaar. Ollama $(ollama --version 2>/dev/null | awk '{print $NF}'), modellen: ${OLLAMA_MODELS}."
+echo "Benchmark draaien:  cd /opt/cydes && venv/bin/python -m bench.run --models ${OLLAMA_MODELS}"
+echo "Of vanaf je eigen pc: python scripts/deployment.py bench"

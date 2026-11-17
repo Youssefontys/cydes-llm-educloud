@@ -1,7 +1,13 @@
 # Kopieer naar terraform.tfvars; staat in .gitignore, nooit in git.
+# Hier staat wat bij jouw account hoort. Wat je per uitrol kiest (modellen, grootte, GRFICS, wie bij SSH mag)
+# vraagt scripts/deployment.py, en dat schrijft het naar deployment.auto.tfvars.json.
 cloudstack_api_url    = "https://educloud.fontysict.nl/client/api"
 cloudstack_api_key    = ""
 cloudstack_secret_key = ""
 
 zone     = "Eindhoven-Zone"
 template = "Ubuntu 24.04.4 LTS Cloud (Noble Numbat)"
+
+# Een SSH-sleutelpaar dat al in je Educloud-account staat, en de private key die erbij hoort.
+keypair              = ""
+ssh_private_key_path = "~/.ssh/id_ed25519"

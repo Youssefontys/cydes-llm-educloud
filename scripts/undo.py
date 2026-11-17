@@ -1,12 +1,18 @@
-# Breekt alles af dat deployment.py heeft opgezet. Helpers komen uit deployment.py.
+# Alles weer weg van Educloud. Start via deployment.py undo.
+# Terraform laat zien wat het weghaalt en vraagt zelf om yes; zonder terminal gebeurt er dus niets.
+
 import deployment
+from deployment import check_tools, stop, terraform, terraform_init
 
 
 def run():
-    deployment.check_tools("undo")
-    if deployment.INTERACTIVE and not deployment.yes("⚠️  Dit verwijdert de VM en het isolated netwerk op Educloud. Doorgaan?"):
-        deployment.stop("Afgebroken op jouw vraag; er is niets verwijderd.", icon="✋")
-    ok = deployment.terraform("destroy", "-auto-approve")
-    if not ok:
-        deployment.stop("Terraform destroy is misgegaan; zie de foutmelding hierboven.")
-    print("\n✅ Weg. Netwerk en VM bestaan niet meer op Educloud.")
+    check_tools("undo")
+    if not deployment.INTERACTIVE:
+        stop("Afbreken vraagt een terminal: Terraform wil dat je yes typt.", icon="✋")
+    print("\n🧹 Dit haalt het netwerk en de VM's weg, met de modellen en alle uitkomsten die nog op de VM staan.")
+    print("   Uitkomsten die je met bench hebt opgehaald, blijven lokaal in results/.\n")
+    terraform_init()
+    if not terraform("destroy"):
+        stop("terraform destroy werkte niet, of je typte geen yes; de melding staat hierboven.")
+    print("\n✅ Weg: het netwerk en de VM's bestaan niet meer op Educloud.")
+    print("💡 Opnieuw neerzetten: python scripts/deployment.py deploy\n")
