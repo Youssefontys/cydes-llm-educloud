@@ -7,7 +7,7 @@ functie die het beleid regel voor regel naloopt. Elke case breekt hoogstens éé
 
 De adressen en rollen volgen GRFICSv3 (HMI en engineering workstation in 192.168.95.0/24, een PLC met holding
 registers), maar de benchmark heeft GRFICS zelf niet nodig: zo is de uitkomst te herhalen op een VM zonder simulatie.
-Alleen de standaardbibliotheek."""
+De tools staan in bench/datasets.py, samen met die van de GRFICS-dataset. Alleen de standaardbibliotheek."""
 import hashlib
 import json
 import random
@@ -153,47 +153,3 @@ def make_cases(n=30, seed=1):
 
 def fingerprint(cases):
     return hashlib.sha256(json.dumps(cases, sort_keys=True).encode()).hexdigest()[:12]
-
-
-# ---- de tools die het model krijgt; in elke variant dezelfde vier ----
-
-PAGE = 10
-TOOLS = [
-    {"name": "get_policy", "description": "Return the security policy the Modbus traffic must follow.", "parameters": {}},
-    {"name": "get_transactions",
-     "description": f"Return up to {PAGE} Modbus transactions of this case, starting at index 'start', and the total number. "
-                    "Fields: i (index), t (seconds), src (client IP), fc (function code), addr (first register), count, values (written values or null).",
-     "parameters": {"start": {"type": "integer", "description": "Index of the first transaction, 0 or higher."}}},
-    {"name": "get_register_info", "description": "Return what one register is, who may write it and its limits.",
-     "parameters": {"address": {"type": "integer", "description": "Register address."}}},
-]
-SUBMIT = {"name": "submit_verdict",
-          "description": "Give the final answer and stop. verdict is 'valid' or the name of the broken rule: " + ", ".join(RULES) + ".",
-          "parameters": {"verdict": {"type": "string", "enum": list(VERDICTS)},
-                         "reason": {"type": "string", "description": "One sentence: which transaction and why."}}}
-REPORT = {"name": "report_findings", "description": "Hand your findings to the reviewer and stop.",
-          "parameters": {"findings": {"type": "string", "description": "What you checked, and every transaction that looks wrong, with its index."}}}
-
-
-def schema(tool):
-    """Het tool als JSON-schema, in de vorm die Ollama en MCP verwachten."""
-    required = [k for k in tool["parameters"] if k not in ("reason",)]
-    return {"type": "function", "function": {"name": tool["name"], "description": tool["description"],
-                                             "parameters": {"type": "object", "properties": tool["parameters"], "required": required}}}
-
-
-def call_tool(case, name, arguments):
-    """Voert een tool uit op deze case. Geeft (resultaat, geldig): een onbekende naam of verkeerde argumenten is ongeldig."""
-    if not isinstance(arguments, dict):
-        return {"error": "arguments must be an object"}, False
-    if name == "get_policy":
-        return POLICY, True
-    if name == "get_transactions":
-        start = arguments.get("start", 0)
-        if not isinstance(start, int) or isinstance(start, bool) or start < 0:
-            return {"error": "start must be an integer of 0 or higher"}, False
-        return {"total": len(case["transactions"]), "start": start, "transactions": case["transactions"][start:start + PAGE]}, True
-    if name == "get_register_info":
-        info = register_info(arguments.get("address"))
-        return info, "error" not in info
-    return {"error": f"unknown tool {name!r}; the tools are get_policy, get_transactions, get_register_info and the final tool"}, False

@@ -11,3 +11,6 @@ results/
 
 __pycache__/
 .venv/
+
+# Ruwe opnames van GRFICS: groot, en de dataset noemt hun hash.
+data/raw/

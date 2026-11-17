@@ -5,61 +5,98 @@ Groepsproject, Fontys ICT semester 6 (Cyber Security Advanced). Deze repo is de 
 **Hoofdvraag:** kan een LLM met beperkte middelen een validatietaak in security uitvoeren, en hoe?
 
 Beperkte middelen is hier Fontys Educloud: een VM zonder GPU, met een paar CPU's en een paar GB geheugen. De modellen
-draaien lokaal in Ollama.
+draaien lokaal in Ollama. Het bewijs komt uit GRFICSv3, een nagebootste fabriek met een PLC.
 
 | Deelvraag | Variant in de benchmark |
 |---|---|
-| 1. Hoe goed doet één agent de taak, met function calling? | `manual`: de tools staan als tekst in de prompt, het model antwoordt met JSON |
-| 2. Maakt MCP het beter? | `mcp`: dezelfde tools, nu via een MCP-server. `native` is de tussenstap (zie hieronder) |
-| 3. Maken meerdere agents het beter? | `multi`: een analist en een reviewer |
+| 0. Referentie: wat doet het model zonder tools? | `direct`: al het bewijs in de prompt, één antwoord |
+| 1. Hoe goed doet één agent de taak, met function calling? | `manual` (variant A): de tools als tekst, het model antwoordt met JSON |
+| 2. Maakt MCP het beter? | `mcp` (variant B): dezelfde tools via een MCP-server. `native` is de tussenstap |
+| 3. Maken meerdere agents het beter? | `multi` (variant C): een analist en een reviewer |
 
-**Status: de benchmark is geschreven en getest met een nagemaakt model; met een echt model is nog niets gemeten.**
-Wat er gemeten is, hoort onder [Metingen](#metingen) te staan, met datum. Zolang die tabel leeg is, is er geen uitkomst.
+**Status:** de benchmark draait op Educloud, op een dataset uit GRFICS van 2026-11-17. Er is alleen een proefrun gedaan;
+een meting die telt staat onder [Metingen](#metingen), met datum. Zolang die tabel leeg is, is er geen uitkomst.
 
-## De taak: Modbus-verkeer toetsen aan een beleid
+## De taak: Modbus-verkeer bij de PLC toetsen aan een beleid
 
-Een case is een kort stuk Modbus/TCP-verkeer naar één PLC: 12 tot 25 transacties, elk met een tijd, het adres van de
-afzender, de function code, het register en de geschreven waarden. Het model krijgt een beveiligingsbeleid met zes
-regels en moet zeggen of het verkeer geldig is, of welke regel het breekt.
+Een case is een venster van ongeveer acht seconden Modbus/TCP-verkeer bij de PLC van GRFICSv3: 16 tot 25 transacties,
+elk met een tijd, de afzender, de server, de function code, het register, de geschreven waarden en de exception uit het
+antwoord. Het model moet zeggen of het verkeer aan het beleid voldoet, of welke regel het breekt.
 
 | Oordeel | Wat het betekent |
 |---|---|
 | `valid` | Geen regel gebroken |
-| `unknown_client` | Een ander adres dan de HMI of het engineering workstation praat met de PLC |
-| `forbidden_function` | Een function code buiten 3, 4, 6 en 16 |
-| `illegal_address` | Een verzoek buiten de registers 0 tot 99 |
-| `unauthorized_write` | Schrijven naar een register dat die afzender niet mag schrijven |
-| `value_out_of_range` | Een setpoint buiten zijn grenzen |
-| `write_flood` | Meer dan 5 schrijfverzoeken van één afzender binnen 10 seconden |
+| `unknown_client` | Een client die niet bij die server hoort, stuurt hem een verzoek |
+| `forbidden_function` | Een function code die die server in het beleid niet heeft |
+| `illegal_address` | Een verzoek buiten de registermap van die server |
+| `unauthorized_write` | Een schrijfactie van een client die alleen mag lezen |
 
-Waarom deze taak:
+### Waar het bewijs vandaan komt
 
-- **Het juiste antwoord staat vast.** Het beleid bestaat ook als code (`check()` in `bench/modbus.py`). Dat is de
-  scheidsrechter, niet een mens. Elke case breekt hoogstens één regel, dus er is één goed antwoord.
-- **Elke run krijgt dezelfde cases.** Het verkeer is nagemaakt met een vaste seed. Standaard 30 cases, waarvan 12 geldig
-  en 3 per regel.
-- **Het is een echte validatietaak**, in de taal van GRFICSv3: de adressen en rollen zijn die van de HMI, het engineering
-  workstation en de PLC daar. GRFICS zelf is niet nodig om te meten.
+Hoe GRFICSv3 Modbus gebruikt, gemeten bij de PLC op 2026-11-17:
 
-Wat het niet is: echt verkeer. Het model krijgt de transacties als gegevens, niet als pakketten, en de overtredingen zijn
-duidelijker dan in de praktijk. De uitkomst zegt dus iets over het toepassen van regels op gestructureerde gegevens met
-tools, niet over het herkennen van een onbekende aanval.
+- de PLC (192.168.95.2) is zelf client: hij leest en stuurt zes veldapparaten (192.168.95.10 tot .15) met function code
+  4 en 16, tien keer per seconde;
+- de HMI (192.168.90.107) staat in de DMZ en leest de PLC elke twee seconden, met function code 1, 3 en 4;
+- het engineering workstation (192.168.95.5) praat in normaal bedrijf niet met de PLC.
 
-## Dezelfde tools, vier manieren
+`deployment.py data` neemt dat verkeer op in de netwerkruimte van de PLC (`bench/collect.py`), eerst een basislijn van
+honderd seconden en daarna scenario's die echt in GRFICS worden uitgevoerd:
 
-Het model ziet de transacties niet in de prompt. Het moet ze opvragen met tools, tien per keer:
+| Scenario | Vanaf | Wat | Breekt |
+|---|---|---|---|
+| `kali-read` | de Kali (DMZ) | leest dezelfde registers als de HMI | `unknown_client` |
+| `ews-device-id` | het engineering workstation | vraagt de identificatie op, function code 43 | `forbidden_function` |
+| `ews-out-of-map` | het engineering workstation | leest register 500 tot 509 | `illegal_address` |
+| `hmi-write-back` | de HMI | schrijft de waarde van holding register 10 terug | `unauthorized_write` |
+
+De eerste drie lezen alleen. Het vierde schrijft dezelfde waarde terug die er al stond, zodat het proces niet verandert,
+maar het blijft een schrijfactie naar de PLC; het draait alleen als je het bij `data` kiest.
+
+`bench/build.py` maakt er cases van:
+
+- **Het beleid komt uit de basislijn** (`derive_policy` in `bench/grfics.py`): per server de clients, de function codes
+  en de registers die daar voorkwamen. Het engineering workstation krijgt erbij dat het de PLC mag lezen en schrijven,
+  omdat dat zijn rol is.
+- **Het juiste antwoord geeft code**, niet een mens: `check()` loopt het beleid na. Een case die niet precies de bedoelde
+  regel breekt, valt weg.
+- **Een case is een venster** met de verzoeken aan de PLC en één ronde van de PLC langs de veldapparaten. Het hele
+  verkeer (zestig verzoeken per seconde) past niet in een klein model; dit houdt het bewijs dat ertoe doet.
+
+De dataset van 2026-11-17 (`data/grfics-2026-11-17.json`) heeft 20 cases: 11 geldig, en 3 per regel voor
+`unknown_client`, `forbidden_function` en `illegal_address`. Het schrijfscenario zit er niet in. De ruwe opname
+(`data/raw/`) staat niet in git; de dataset noemt de hash ervan.
+
+Twee dingen die de opname liet zien en die los van de benchmark tellen:
+
+- **De Kali in de DMZ krijgt antwoord van de PLC.** De firewall van de router laat al het verkeer door
+  (`-A FORWARD -j ACCEPT`), dus de segmentatie tussen DMZ en ICS-netwerk houdt niets tegen.
+- **De PLC weigert function code 43 zelf** (exception 1), maar beantwoordt een leesverzoek buiten de registers die de
+  HMI gebruikt wel.
+
+### Wat dit wel en niet meet
+
+Het meet of een model een beleid kan toepassen op echt Modbus-verkeer dat het met tools moet ophalen. Het meet niet of
+een model een onbekende aanval herkent: elk scenario breekt één regel uit een bekend beleid. En het beleid is afgeleid
+uit honderd seconden normaal verkeer; wat daar niet in voorkwam, is verboden.
+
+Zonder GRFICS kan de benchmark ook op nagemaakt verkeer draaien (`bench/modbus.py`, zonder `--dataset`). Dat is voor de
+tests en om iets te proberen; die cases hebben ook `value_out_of_range` en `write_flood`.
+
+## Dezelfde tools, vijf manieren
+
+Behalve bij `direct` ziet het model de transacties niet in de prompt. Het moet ze opvragen, tien per keer:
 
 | Tool | Wat het geeft |
 |---|---|
-| `get_policy` | Het beleid |
+| `get_policy` | De regels, per server de clients met hun schrijfrecht, en de function codes |
 | `get_transactions(start)` | Tien transacties vanaf `start`, en het totaal |
-| `get_register_info(address)` | Wat een register is, wie het mag schrijven en de grenzen |
+| `get_register_map(server)` | De registermap van een server; wat een register betekent, staat er bewust niet in |
 | `submit_verdict(verdict, reason)` | Het oordeel; hiermee stopt de run |
 
-Alleen de manier van aanroepen verschilt per variant, zodat een verschil in uitkomst daaraan ligt:
-
-| Variant | Hoe het model de tools aanroept |
+| Variant | Hoe het model bij het bewijs komt |
 |---|---|
+| `direct` | Variant 0: het beleid, de registermaps en alle transacties staan in de prompt; één antwoord als JSON |
 | `manual` | De tools staan als tekst in de prompt; het model antwoordt met `{"tool": ..., "arguments": ...}` en de benchmark ontleedt dat zelf |
 | `native` | De tool-aanroepen van Ollama zelf (het veld `tools`) |
 | `mcp` | Als `native`, maar de tools komen van een MCP-server (`bench/mcp_server.py`) en worden daar uitgevoerd |
@@ -68,24 +105,27 @@ Alleen de manier van aanroepen verschilt per variant, zodat een verschil in uitk
 `native` staat erbij omdat `mcp` twee dingen tegelijk verandert ten opzichte van `manual`: de tool-aanroepen van Ollama,
 en MCP. Het verschil tussen `manual` en `native` is het eerste, het verschil tussen `native` en `mcp` is MCP zelf.
 
-`multi` gebruikt geen framework zoals CrewAI: het zijn twee keer dezelfde lus met een andere opdracht. Zo meet je wat een
-tweede agent kost en oplevert, niet wat een framework erbij doet.
+`multi` gebruikt geen framework: het zijn twee keer dezelfde lus met een andere opdracht. Het onderzoek naar MCP noemt
+vier rollen (hoofd, security, analyse, verificatie); twee is het kleinste dat al laat zien wat een tweede agent kost.
 
-Niet elk model kent de tool-aanroepen van Ollama. Een model dat ze niet kent, kan alleen `manual`; kijk op
-ollama.com (zoek op "tools") voor je een model in de vergelijking zet.
+Niet elk model kent de tool-aanroepen van Ollama. Een model dat ze niet kent, kan alleen `direct` en `manual`.
 
 ## Wat er gemeten wordt
 
 Per run, in één regel van een JSONL-bestand:
 
-- het oordeel en of het klopt, ook alleen op "geldig of niet";
-- het aantal aanroepen van het model en van de tools, en hoeveel daarvan ongeldig waren (geen JSON, een tool die niet
-  bestaat, verkeerde argumenten);
+- het oordeel en of het klopt;
+- het aantal aanroepen van het model en van de tools, en hoeveel daarvan ongeldig waren;
 - de doorlooptijd, de tokens in en uit, en de tokens per seconde;
-- het piekgeheugen van Ollama tijdens de run.
+- van Ollama het piekgeheugen en de CPU-tijd, en bij `mcp` ook die van de MCP-server apart.
 
-De eerste regel van het bestand legt vast waarop gemeten is: het aantal CPU's, het geheugen, de versie van Ollama en van
-`mcp`, en per model de digest, de grootte en de kwantisatie. Temperatuur 0 en een vaste seed; een run stopt na 12 stappen.
+`bench.report` maakt er twee tabellen van. Kwaliteit: juist oordeel, precision, recall en F1 (een overtreding melden
+tegenover geen melden), en bij herhalingen de consistentie. Kosten: aanroepen, tijd, tokens per seconde, CPU-tijd en
+geheugen.
+
+De eerste regel van het bestand legt vast waarop gemeten is: CPU's, geheugen, de versie van Ollama en van `mcp`, per
+model de digest, de grootte en de kwantisatie, en de dataset met zijn vingerafdruk. Temperatuur 0 en een vaste seed;
+een run stopt na 12 stappen.
 
 ## Zo draai je het
 
@@ -98,11 +138,17 @@ Je hebt Terraform, Python 3 en een SSH-sleutelpaar in je Educloud-account nodig,
    ```bash
    python scripts/deployment.py deploy
    ```
-3. Draai de benchmark. Het script start hem op de VM, haalt de uitkomsten op naar `results/` en toont de tabel.
+3. Alleen voor een nieuwe dataset: neem verkeer op in GRFICS en zet het om. Dat duurt een paar minuten. Met de dataset
+   die al in de repo staat, kun je deze stap overslaan.
+   ```bash
+   python scripts/deployment.py data
+   ```
+4. Draai de benchmark. Het script zet de gekozen dataset op de VM, start de benchmark, haalt de uitkomsten op naar
+   `results/` en toont de tabellen.
    ```bash
    python scripts/deployment.py bench
    ```
-4. Breek alles weer af als je klaar bent.
+5. Breek alles weer af als je klaar bent.
    ```bash
    python scripts/deployment.py undo
    ```
@@ -110,29 +156,38 @@ Je hebt Terraform, Python 3 en een SSH-sleutelpaar in je Educloud-account nodig,
 Een ander model of een andere grootte: `deploy` opnieuw. Je keuzes staan in `terraform/deployment.auto.tfvars.json`, dus
 het script stelt de vorige voor en Terraform verandert alleen wat anders is.
 
-Zonder GPU duurt een run tientallen seconden tot minuten. Daarom schrijft de benchmark elke run meteen weg en slaat hij
-over wat al gedaan is: valt de verbinding weg, dan start je `bench` opnieuw met dezelfde naam en gaat hij verder.
+Zonder GPU duurt een run één tot zes minuten. Twintig cases in vijf varianten is per model dus enkele uren. Daarom
+schrijft de benchmark elke run meteen weg en slaat hij over wat al gedaan is: valt de verbinding weg, dan start je
+`bench` opnieuw met dezelfde naam en gaat hij verder.
 
 Op de VM zelf, of op een eigen machine met Ollama:
 
 ```bash
-python -m bench.run --models qwen2.5:3b,llama3.2:3b
+python -m bench.run --models qwen2.5:3b --dataset data/grfics-2026-11-17.json
 ```
 
 ```bash
 python -m bench.report results/results.jsonl
 ```
 
+Voor een korte proef: `--only grfics-001,grfics-012` draait alleen die cases, `--variants direct,native` alleen die
+varianten.
+
 ## Wat erin zit
 
 | Bestand | Wat |
 |---|---|
-| `bench/modbus.py` | De cases, het beleid, de scheidsrechter en de tools |
-| `bench/runners.py` | De vier varianten |
+| `bench/collect.py` | Op de GRFICS-VM: opnemen bij de PLC en de scenario's uitvoeren |
+| `bench/pcap.py`, `bench/build.py` | Modbus uit de opname halen, en er een dataset van maken |
+| `bench/grfics.py` | Het beleid uit de basislijn, de scheidsrechter en de cases |
+| `bench/modbus.py` | Nagemaakt verkeer, voor de tests |
+| `bench/datasets.py` | De twee datasets en de tools die het model krijgt |
+| `bench/runners.py` | De vijf varianten |
 | `bench/mcp_server.py`, `bench/mcp_bridge.py` | De MCP-server met de tools, en de client die de benchmark gebruikt |
 | `bench/run.py`, `bench/report.py` | De benchmark draaien en meten, en de uitkomsten samenvatten |
-| `tests/test_bench.py` | Tests zonder echt model |
-| `scripts/deployment.py` | Neerzetten, de benchmark draaien en afbreken; de opdrachten staan in `deploy.py`, `run_bench.py` en `undo.py` |
+| `data/grfics-*.json` | De datasets; de ruwe opnames in `data/raw/` staan niet in git |
+| `tests/test_bench.py` | Tests zonder echt model en zonder GRFICS |
+| `scripts/deployment.py` | Neerzetten, opnemen, de benchmark draaien en afbreken; de opdrachten staan in `deploy.py`, `run_data.py`, `run_bench.py` en `undo.py` |
 | `terraform/` | Het netwerk en de VM's op Educloud; `bootstrap-openllm.sh` zet Ollama en de benchmark op de VM |
 | `requirements.txt` | Alleen `mcp`, vast op een versie; de rest is de standaardbibliotheek |
 
@@ -142,35 +197,41 @@ python -m bench.report results/results.jsonl
 python -m unittest discover -s tests -v
 ```
 
-De tests gebruiken een nagemaakte Ollama die zich gedraagt als een model dat de taak goed doet. Daarmee is getest:
+De tests gebruiken een nagemaakte Ollama die zich gedraagt als een model dat de taak goed doet, en bouwen zelf een klein
+pcap-bestand met Modbus-verkeer. Daarmee is getest:
 
-- de cases: dezelfde seed geeft dezelfde cases, en de scheidsrechter vindt in elke case precies de bedoelde regel;
-- alle vier de varianten van begin tot eind, `mcp` door de echte MCP-server heen: met het nagemaakte model komt elke
-  variant op 100% uit;
-- dat ongeldige aanroepen geteld worden, dat een onderbroken benchmark verdergaat zonder dubbel werk, en dat een model
-  dat niet in Ollama staat de benchmark stopt voordat er iets draait.
+- het lezen van Modbus uit een pcap, het beleid uit de basislijn, en dat elke case precies de bedoelde regel breekt;
+- alle vijf de varianten van begin tot eind, op de nagemaakte en op de GRFICS-dataset, `mcp` door de echte MCP-server
+  heen: met het nagemaakte model komt elke variant op 100% uit;
+- dat ongeldige aanroepen geteld worden, de consistentie bij herhalingen, precision, recall en F1, en dat een
+  onderbroken benchmark verdergaat zonder dubbel werk.
+
+Op Educloud (2026-11-17):
+
+- `deploy`: de VM met Ollama en de GRFICS-VM staan, en de benchmark staat in `/opt/cydes`;
+- de opname: `collect.py` op de GRFICS-VM, met de drie lezende scenario's, en `build.py` op die opname;
+- een proefrun met `qwen2.5:3b` (zie [Metingen](#metingen)).
 
 Niet getest:
 
-- **Geen enkel echt model.** De tests zeggen dat de meetopstelling klopt, niets over hoe goed een model is.
-- **Niets op Educloud.** `terraform validate` slaagt; `terraform apply`, het script op de VM en `deployment.py bench` zijn
-  met deze versie niet gedraaid.
-- **Het piekgeheugen** is alleen op Linux te meten en dus lokaal niet getest.
+- **Het schrijfscenario** (`hmi-write-back`) is niet in GRFICS uitgevoerd.
+- **`deployment.py data` en `bench` als geheel**: de stappen erin zijn met de hand gedaan, de scripts zelf niet.
+- **Andere modellen dan `qwen2.5:3b`.**
 
 ## Metingen
 
-| Datum | VM | Modellen | Bestand | Uitkomst |
-|---|---|---|---|---|
-| nog niet gemeten | | | | |
+| Datum | VM | Modellen | Dataset | Bestand | Uitkomst |
+|---|---|---|---|---|---|
+| nog niet gemeten | | | | | |
 
-Zet bij een meting die telt het JSONL-bestand in git (`git add -f results/<naam>.jsonl`) en de tabel van
-`bench.report` hieronder.
+Een proefrun telt niet als meting: die is om te zien dat de keten werkt. Zet bij een meting die telt het JSONL-bestand
+in git (`git add -f results/<naam>.jsonl`) en de tabellen van `bench.report` hieronder.
 
 ## GRFICSv3
 
 Met "GRFICSv3 erbij" zet `deploy` een tweede, grote VM neer met de nagebootste fabriek van Fortiphyd
-(`terraform/bootstrap-grfics.sh`). Dat is voor demo's en om later echt verkeer op te nemen; de benchmark gebruikt hem
-niet. Het script test eerst of het netwerk van Educloud VLAN's en macvlan toelaat, want daar hangt GRFICS van af.
+(`terraform/bootstrap-grfics.sh`). Het script test eerst of het netwerk van Educloud VLAN's en macvlan toelaat, want daar
+hangt GRFICS van af.
 
 De VM is bereikbaar op poort 2222 van hetzelfde publieke adres. Er draaien een bewust kwetsbare omgeving en een Kali op:
 beperk bij `deploy` wie bij SSH mag.
