@@ -33,12 +33,20 @@ class PeakMemory:
     def __init__(self):
         self.peak, self._stop = None, threading.Event()
 
+    @staticmethod
+    def is_ollama(argv0):
+        # Het model draait niet in "ollama serve" (40 MB) maar in een eigen proces, /usr/local/lib/ollama/llama-server
+        # (Ollama 0.40); oudere versies heten "ollama runner". Op de naam van het programma, want comm is per versie anders.
+        name = argv0.rsplit("/", 1)[-1]
+        return name in ("ollama", "llama-server") or "/ollama/" in argv0
+
     def _sample(self):
         total = 0
-        for comm in glob.glob("/proc/[0-9]*/comm"):
+        for cmdline in glob.glob("/proc/[0-9]*/cmdline"):
             try:
-                if pathlib.Path(comm).read_text().startswith("ollama"):
-                    for line in pathlib.Path(comm).with_name("status").read_text().splitlines():
+                path = pathlib.Path(cmdline)
+                if self.is_ollama(path.read_bytes().split(b"\0")[0].decode(errors="replace")):
+                    for line in path.with_name("status").read_text().splitlines():
                         if line.startswith("VmRSS:"):
                             total += int(line.split()[1])
             except OSError:
