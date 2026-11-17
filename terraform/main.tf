@@ -129,6 +129,8 @@ resource "null_resource" "bootstrap_openllm" {
 
   provisioner "remote-exec" {
     inline = [
+      # Uitgecheckt op Windows heeft het script CRLF; dan leest Linux "#!/bin/bash\r" en start het niet.
+      "sed -i 's/\\r$//' /tmp/cydes/bootstrap-openllm.sh",
       "chmod +x /tmp/cydes/bootstrap-openllm.sh",
       # "sudo VAR=x script" start "VAR=x" als programma; via bash -c gaat het goed. De waarde is in variables.tf
       # beperkt tot tekens van een modelnaam, dus er kan geen opdracht in staan.
@@ -161,6 +163,7 @@ resource "null_resource" "bootstrap_grfics" {
 
   provisioner "remote-exec" {
     inline = [
+      "sed -i 's/\\r$//' /tmp/bootstrap-grfics.sh",
       "chmod +x /tmp/bootstrap-grfics.sh",
       "sudo bash -c 'GRFICS_SIEM=${var.grfics_siem} /tmp/bootstrap-grfics.sh'",
     ]
