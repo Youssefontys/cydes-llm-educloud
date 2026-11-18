@@ -222,10 +222,34 @@ Niet getest:
 
 | Datum | VM | Modellen | Dataset | Bestand | Uitkomst |
 |---|---|---|---|---|---|
-| nog niet gemeten | | | | | |
+| 2026-11-17 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-17-qwen2.5-3b.jsonl](results/2026-11-17-qwen2.5-3b.jsonl) | zie tabellen hieronder |
 
 Een proefrun telt niet als meting: die is om te zien dat de keten werkt. Zet bij een meting die telt het JSONL-bestand
 in git (`git add -f results/<naam>.jsonl`) en de tabellen van `bench.report` hieronder.
+
+Gemeten op 2026-11-17T15:53:56+00:00: 2 CPU's, 11,7 GB, Ollama 0.40.16, dataset grfics (20 cases, 24c87dc58556,
+grfics-2026-11-17.json), context 4096 tokens. qwen2.5:3b: 1930 MB, Q4_K_M, digest 357c53fb659c.
+
+| Model | Variant | Runs | Juist | Precision | Recall | F1 | Consistent | Geen oordeel | Ongeldige aanroepen per run | Volledig bewijs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | direct | 20 | 15% | 45% | 100% | 62% | - | 0 | 0.0 | - |
+| qwen2.5:3b | manual | 20 | 35% | 55% | 67% | 60% | - | 0 | 0.0 | - |
+| qwen2.5:3b | native | 20 | 45% | 83% | 56% | 67% | - | 4 | 1.1 | - |
+| qwen2.5:3b | mcp | 20 | 35% | 50% | 22% | 31% | - | 2 | 0.4 | - |
+| qwen2.5:3b | multi | 20 | 45% | 60% | 33% | 43% | - | 2 | 1.6 | - |
+
+| Model | Variant | Aanroepen model per run | Mediaan seconden | Tokens per seconde | CPU-seconden per run | Piekgeheugen MB | MCP-server MB | MCP-server CPU-seconden |
+|---|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | direct | 1.0 | 128 | 3.5 | 251 | 4345 | - | - |
+| qwen2.5:3b | manual | 4.5 | 88 | 4.0 | 201 | 6226 | - | - |
+| qwen2.5:3b | native | 4.0 | 292 | 3.8 | 695 | 8273 | - | - |
+| qwen2.5:3b | mcp | 4.4 | 316 | 3.7 | 752 | 10365 | 66 | 0.0 |
+| qwen2.5:3b | multi | 7.5 | 445 | 3.7 | 992 | 10372 | - | - |
+
+"Volledig bewijs" staat op "-": deze meting liep met de code van voor `evidence_complete` (zie [bench/runners.py](bench/runners.py)
+en de commit die het toevoegde). `mcp` heeft de laagste recall (22%): het model mist de meeste overtredingen en zegt te
+vaak `valid`. `native` heeft de beste F1 (67%) ondanks maar 45% exacte treffers, dankzij hoge precision. `multi` kost
+7,5x zoveel modelaanroepen als `direct` en bijna 1.000 CPU-seconden per run, voor een F1 die lager is dan `native`.
 
 ## GRFICSv3
 
