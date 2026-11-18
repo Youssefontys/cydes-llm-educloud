@@ -43,12 +43,18 @@ INTERACTIVE = sys.stdin.isatty()
 # het draaien; dat meet de benchmark (qwen2.5:3b: 2,5 GB). Of een model tool-aanroepen kent, bepaalt of native, mcp en
 # multi ermee werken: het onderzoek naar MCP noemt Qwen3 en Llama 3.2 met het label tools in Ollama, Gemma 3 niet.
 # Controleer het op ollama.com/search?c=tools voor je een model in de vergelijking zet.
+#
+# qwen2.5:7b (optie 6) is NIET default: een proef op de Medium Instance+ VM (2 CPU, 12 GB) bleef qua geheugen prima
+# (5,6 GB piek bij multi, tegen 10,4 GB voor 3b), maar liep in de variant multi vast op de harde timeout van 900s in
+# ollama() (bench/runners.py): één aanroep kwam na 36+ minuten nog niet terug, geen oordeel. Te traag (1,75 tok/s) voor
+# de huidige opzet van de duurdere varianten; alleen gebruiken met een hogere --num-ctx/timeout en eerst testen.
 MODELS = {
     "1": ("qwen2.5:3b", "1,9 GB"),
     "2": ("qwen3:1.7b", "1,4 GB"),
     "3": ("qwen3:4b", "2,5 GB"),
     "4": ("llama3.2:3b", "2,0 GB"),
     "5": ("llama3.2:1b", "1,3 GB"),
+    "6": ("qwen2.5:7b", "4,7 GB"),
 }
 OFFERINGS = {"1": "Medium Instance", "2": "Medium Instance+", "3": "Large Instance"}
 MODEL_NAME = r"[A-Za-z0-9._/-]+(:[A-Za-z0-9._-]+)?"

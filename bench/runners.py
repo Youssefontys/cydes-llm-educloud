@@ -36,7 +36,8 @@ class Stats(dict):
     """Wat één run kostte, opgeteld over alle aanroepen van het model."""
 
     def __init__(self):
-        super().__init__(llm_calls=0, tool_calls=0, invalid_calls=0, prompt_tokens=0, output_tokens=0, eval_seconds=0.0, llm_seconds=0.0)
+        super().__init__(llm_calls=0, tool_calls=0, invalid_calls=0, prompt_tokens=0, output_tokens=0, eval_seconds=0.0, llm_seconds=0.0,
+                         policy_seen=False, transactions_seen=0, transactions_total=None, register_calls=0)
 
     def add(self, response, seconds):
         self["llm_calls"] += 1
@@ -44,6 +45,28 @@ class Stats(dict):
         self["prompt_tokens"] += response.get("prompt_eval_count") or 0
         self["output_tokens"] += response.get("eval_count") or 0
         self["eval_seconds"] += (response.get("eval_duration") or 0) / 1e9
+
+
+def _track_evidence(stats, name, arguments, result, ok):
+    """Hield het model genoeg bewijs op voordat het oordeelde? Alleen tellen, geen aanroep tegenhouden."""
+    if not ok:
+        return
+    if name == "get_policy":
+        stats["policy_seen"] = True
+    elif name == "get_transactions" and isinstance(result, dict):
+        start = arguments.get("start", 0) if isinstance(arguments, dict) else 0
+        stats["transactions_seen"] = max(stats["transactions_seen"], start + len(result.get("transactions") or []))
+        if "total" in result:
+            stats["transactions_total"] = result["total"]
+    elif "register" in name:
+        stats["register_calls"] += 1
+
+
+def _evidence_complete(stats):
+    """None: deze variant gebruikte geen tools (direct). Anders: beleid gezien en alle transacties opgehaald."""
+    if stats["transactions_total"] is None:
+        return None
+    return stats["policy_seen"] and stats["transactions_seen"] >= stats["transactions_total"]
 
 
 def chat(model, messages, stats, options, tools=None, json_mode=False):
@@ -74,6 +97,11 @@ class LocalTools:
 def _verdict(reply, dataset):
     verdict = reply.get("verdict") if isinstance(reply, dict) else None
     return verdict if verdict in dataset.verdicts else None
+
+
+def _reason(reply):
+    reason = reply.get("reason") if isinstance(reply, dict) else None
+    return reason[:300] if isinstance(reason, str) else None
 
 
 def direct(model, dataset, case, stats, options):
@@ -116,6 +144,7 @@ def manual_loop(model, toolbox, final, stats, options, system, user):
             return arguments
         result, ok = toolbox.call(name, arguments)
         stats["invalid_calls"] += 0 if ok else 1
+        _track_evidence(stats, name, arguments, result, ok)
         messages.append({"role": "user", "content": "TOOL RESULT: " + json.dumps(result)})
     return None
 
@@ -146,6 +175,7 @@ def native_loop(model, toolbox, final, stats, options, system, user):
                 return arguments
             result, ok = toolbox.call(name, arguments) if isinstance(arguments, dict) else ({"error": "arguments must be an object"}, False)
             stats["invalid_calls"] += 0 if ok else 1
+            _track_evidence(stats, name, arguments if isinstance(arguments, dict) else {}, result, ok)
             messages.append({"role": "tool", "tool_name": name or "", "content": json.dumps(result)})
     return None
 
@@ -172,4 +202,5 @@ def run_case(variant, model, dataset, case, options, mcp_bridge=None):
                              f"{user}\n\nFindings of the analyst:\n{handed}")
     else:
         raise ValueError(f"onbekende variant {variant!r}")
-    return _verdict(answer, dataset), stats
+    stats["evidence_complete"] = _evidence_complete(stats)
+    return _verdict(answer, dataset), _reason(answer), stats

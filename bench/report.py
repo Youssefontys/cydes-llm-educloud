@@ -53,12 +53,15 @@ def summarise(path):
         for name, info in meta["models"].items():
             lines.append(f"- {name}: {info['size_mb']} MB, {info['quantization']}, digest {str(info['digest'])[:12]}")
         lines.append("")
-    lines += ["| Model | Variant | Runs | Juist | Precision | Recall | F1 | Consistent | Geen oordeel | Ongeldige aanroepen per run |",
-              "|---|---|---|---|---|---|---|---|---|---|"]
+    lines += ["| Model | Variant | Runs | Juist | Precision | Recall | F1 | Consistent | Geen oordeel | Ongeldige aanroepen per run | Volledig bewijs |",
+              "|---|---|---|---|---|---|---|---|---|---|---|"]
     for (model, variant), rows in groups.items():
         precision, recall, f1, consistent = scores(rows)
+        complete = [r["evidence_complete"] for r in rows if r.get("evidence_complete") is not None]
+        evidence = pct(sum(complete) / len(complete)) if complete else "-"
         lines.append(f"| {model} | {variant} | {len(rows)} | {pct(sum(r['correct'] for r in rows) / len(rows))} | {pct(precision)} | {pct(recall)} "
-                     f"| {pct(f1)} | {pct(consistent)} | {sum(r['verdict'] is None for r in rows)} | {_mean(r['invalid_calls'] for r in rows)} |")
+                     f"| {pct(f1)} | {pct(consistent)} | {sum(r['verdict'] is None for r in rows)} | {_mean(r['invalid_calls'] for r in rows)} "
+                     f"| {evidence} |")
     lines += ["", "| Model | Variant | Aanroepen model per run | Mediaan seconden | Tokens per seconde | CPU-seconden per run "
               "| Piekgeheugen MB | MCP-server MB | MCP-server CPU-seconden |", "|---|---|---|---|---|---|---|---|---|"]
     for (model, variant), rows in groups.items():
