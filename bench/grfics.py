@@ -86,13 +86,23 @@ def model_policy(policy):
             "verdicts": "Answer 'valid' if no rule is broken, otherwise the name of the one rule that is broken."}
 
 
+def _table_note():
+    grouped = {}
+    for fc, table in TABLES.items():
+        grouped.setdefault(table, []).append(fc)
+    return "; ".join(f"{table} (function codes {', '.join(str(fc) for fc in sorted(fcs))})" for table, fcs in sorted(grouped.items()))
+
+
 def register_map(policy, server):
     s = policy["servers"].get(server)
     if s is None:
         return {"error": f"{server!r} is not a server in the policy; the servers are {', '.join(policy['servers'])}"}
-    # Alleen wat in het beleid staat; wat een register betekent, staat er niet in en zegt de tool dus ook niet.
+    # Alleen wat in het beleid staat; wat een register betekent, staat er niet in en zegt de tool dus ook niet. De
+    # koppeling function code -> tabel is wel protocolkennis, geen beleidskennis, en staat er daarom wel in: zonder
+    # dat moet het model zelf onthouden welke function code bij welke tabel hoort, en dat ging vaak genoeg mis.
     return {"server": server, "role": s["role"], "map": {k: {"first": v[0], "last": v[1]} for k, v in s["map"].items()},
-            "note": "Ranges are inclusive. A table that is not listed may not be touched. The meaning of a register is not known."}
+            "note": f"Ranges are inclusive. A table that is not listed may not be touched. The meaning of a register is "
+                     f"not known. Tables by function code: {_table_note()}."}
 
 
 def build_cases(transactions, marks, baseline_until, window=8.0):

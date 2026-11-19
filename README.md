@@ -33,6 +33,9 @@ antwoord. Het model moet zeggen of het verkeer aan het beleid voldoet, of welke 
 
 ### Waar het bewijs vandaan komt
 
+Voor de volledige methodologie (precies hoe de opname, het afleiden van het beleid en het labelen van cases werken,
+stap voor stap met verwijzingen naar de code) zie [docs/methodologie.md](docs/methodologie.md). Hier de samenvatting.
+
 Hoe GRFICSv3 Modbus gebruikt, gemeten bij de PLC op 2026-11-17:
 
 - de PLC (192.168.95.2) is zelf client: hij leest en stuurt zes veldapparaten (192.168.95.10 tot .15) met function code
@@ -186,6 +189,7 @@ varianten.
 | `bench/mcp_server.py`, `bench/mcp_bridge.py` | De MCP-server met de tools, en de client die de benchmark gebruikt |
 | `bench/run.py`, `bench/report.py` | De benchmark draaien en meten, en de uitkomsten samenvatten |
 | `data/grfics-*.json` | De datasets; de ruwe opnames in `data/raw/` staan niet in git |
+| `docs/methodologie.md` | Hoe elke dataset is gemaakt: echte opname versus synthetisch, stap voor stap |
 | `tests/test_bench.py` | Tests zonder echt model en zonder GRFICS |
 | `scripts/deployment.py` | Neerzetten, opnemen, de benchmark draaien en afbreken; de opdrachten staan in `deploy.py`, `run_data.py`, `run_bench.py` en `undo.py` |
 | `terraform/` | Het netwerk en de VM's op Educloud; `bootstrap-openllm.sh` zet Ollama en de benchmark op de VM |
