@@ -230,6 +230,7 @@ Waarom we iets probeerden, en wat dat liet zien: [docs/experimenten.md](docs/exp
 |---|---|---|---|---|---|
 | 2026-11-17 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-17-qwen2.5-3b.jsonl](results/2026-11-17-qwen2.5-3b.jsonl) | zie tabellen hieronder |
 | 2026-11-18 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-18-qwen2.5-3b.jsonl](results/2026-11-18-qwen2.5-3b.jsonl) | herhaling, met `reason` en `evidence_complete`; zie tabellen hieronder |
+| 2026-11-19 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-19-qwen2.5-3b.jsonl](results/2026-11-19-qwen2.5-3b.jsonl) | bewijs afgedwongen + `PAGE` 10→30; zie tabellen hieronder en [docs/experimenten.md](docs/experimenten.md) |
 
 Een proefrun telt niet als meting: die is om te zien dat de keten werkt. Zet bij een meting die telt het JSONL-bestand
 in git (`git add -f results/<naam>.jsonl`) en de tabellen van `bench.report` hieronder.
@@ -285,6 +286,35 @@ bloot: in 0-5% van de runs had het model alle transacties gezien voordat het oor
 (valid), niet beter. Ook sloeg het model in 50-60% van de runs de registertool (`get_register_map`) helemaal over,
 wat `illegal_address`-overtredingen structureel onzichtbaar maakt. Twee runs liepen vast op de timeout van 900s in
 `ollama()` (`native` en `multi`), niet alleen bij een groter model.
+
+### 2026-11-19: bewijs afgedwongen, PAGE 10→30, num_predict-cap
+
+Gemeten op 2026-11-19T05:19:50+00:00: dezelfde VM, hetzelfde model en dezelfde dataset als hierboven; context 4096
+tokens. qwen2.5:3b: 1930 MB, Q4_K_M, digest 357c53fb659c.
+
+| Model | Variant | Runs | Juist | Precision | Recall | F1 | Consistent | Geen oordeel | Ongeldige aanroepen per run | Volledig bewijs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | direct | 20 | 15% | 45% | 100% | 62% | - | 0 | 0.0 | - |
+| qwen2.5:3b | manual | 20 | 55% | 100% | 11% | 20% | - | 0 | 0.0 | 100% |
+| qwen2.5:3b | native | 20 | 45% | 60% | 33% | 43% | - | 3 | 3.6 | 100% |
+| qwen2.5:3b | mcp | 20 | 35% | 100% | 11% | 20% | - | 6 | 3.6 | 100% |
+| qwen2.5:3b | multi | 20 | 45% | 56% | 56% | 56% | - | 3 | 3.7 | 100% |
+
+| Model | Variant | Aanroepen model per run | Mediaan seconden | Tokens per seconde | CPU-seconden per run | Piekgeheugen MB | MCP-server MB | MCP-server CPU-seconden |
+|---|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | direct | 1.0 | 129 | 3.5 | 254 | 5123 | - | - |
+| qwen2.5:3b | manual | 4.7 | 145 | 3.8 | 352 | 8407 | - | - |
+| qwen2.5:3b | native | 7.8 | 645 | 3.4 | 1332 | 10384 | - | - |
+| qwen2.5:3b | mcp | 8.0 | 775 | 3.3 | 1911 | 10387 | 66 | 0.0 |
+| qwen2.5:3b | multi | 11.2 | 995 | 3.5 | 2072 | 10386 | - | - |
+
+Bewijs afdwingen werkte: "Volledig bewijs" ging van 0-5% naar 100%. De kwaliteit ging **niet** overal mee omhoog.
+`manual`, `native` en `mcp` gingen er qua F1 op achteruit (60%→20%, 67%→43%, 31%→20%): met volledig bewijs koos het
+model vaker `valid` bij een echte overtreding dan voorheen met onvolledig bewijs. Alleen `multi` werd beter
+(43%→56%) — de reviewer-stap lijkt baat te hebben bij afgedwongen bewijs waar de losse agents dat niet hebben. De
+kosten gingen flink omhoog: 2-3x zoveel modelaanroepen en CPU-tijd per run. Omdat drie dingen tegelijk veranderden
+(bewijs afdwingen, `PAGE` 10→30, `num_predict`-cap), is de oorzaak van de verslechtering nog niet geïsoleerd — zie
+[docs/experimenten.md](docs/experimenten.md) voor de vervolghypothese.
 
 ## GRFICSv3
 
