@@ -224,6 +224,8 @@ Niet getest:
 
 ## Metingen
 
+Waarom we iets probeerden, en wat dat liet zien: [docs/experimenten.md](docs/experimenten.md).
+
 | Datum | VM | Modellen | Dataset | Bestand | Uitkomst |
 |---|---|---|---|---|---|
 | 2026-11-17 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-17-qwen2.5-3b.jsonl](results/2026-11-17-qwen2.5-3b.jsonl) | zie tabellen hieronder |
