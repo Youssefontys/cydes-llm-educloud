@@ -1,7 +1,7 @@
 #!/bin/bash
 # Uitgevoerd door de remote-exec provisioner in main.tf. Gaat uit van Ubuntu. Verwacht
-# GRFICS_SIEM ("yes"/"no") als omgevingsvariabele. Status: geschreven, nog niet tegen een
-# echte VM gedraaid.
+# GRFICS_SIEM ("yes"/"no") als omgevingsvariabele. Draait en levert een werkende GRFICSv3
+# op Educloud; bevestigd door de opname van 2026-11-17 (zie docs/methodologie.md).
 #
 # Test eerst, apart en vroeg, of CloudStack's netwerk getagd VLAN-verkeer + macvlan toelaat
 # op de guest-NIC. GRFICSv3's eigen docker-compose.yml heeft dit nodig voor de twee

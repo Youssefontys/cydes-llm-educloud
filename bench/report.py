@@ -30,7 +30,7 @@ def scores(rows):
     by_case = {}
     for r in rows:
         by_case.setdefault(r["case"], set()).add(r["verdict"])
-    repeated = max(sum(1 for r in rows if r["case"] == c) for c in by_case) > 1
+    repeated = bool(by_case) and max(sum(1 for r in rows if r["case"] == c) for c in by_case) > 1
     consistent = sum(len(v) == 1 for v in by_case.values()) / len(by_case) if repeated else None
     return precision, recall, f1, consistent
 
