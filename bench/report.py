@@ -38,7 +38,10 @@ def scores(rows):
 def summarise(path):
     meta, groups = None, {}
     for line in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
-        row = json.loads(line)
+        try:
+            row = json.loads(line)
+        except ValueError:  # een kapotte laatste regel, bv. door een harde kill tijdens het schrijven
+            continue
         if row.get("meta"):
             meta = row
         else:

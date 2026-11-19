@@ -63,11 +63,13 @@ def check(policy, transactions):
     for t in transactions:
         server = policy["servers"].get(t["dst"])
         client = server and server["clients"].get(t["src"])
+        table = TABLES.get(t["fc"])
         if not client:
             broken.add("unknown_client")
         elif t["fc"] not in server["functions"]:
             broken.add("forbidden_function")
-        elif not _inside(server["map"].get(TABLES.get(t["fc"])), t):
+        # Een function code zonder tabel (bv. 43, device-id) raakt geen register; niets om te checken.
+        elif table and not _inside(server["map"].get(table), t):
             broken.add("illegal_address")
         elif t["fc"] in WRITE_CODES and not client["write"]:
             broken.add("unauthorized_write")

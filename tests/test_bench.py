@@ -23,8 +23,15 @@ from bench import build, datasets, grfics, modbus, pcap, report, run, runners  #
 CHECK = {"fn": None}  # de scheidsrechter van de dataset die de lopende test gebruikt
 
 
-def fake_model(messages, tools, sloppy, json_mode):
-    """Het volgende antwoord van een model dat de taak goed doet, afgeleid uit het gesprek tot nu toe."""
+def fake_model(messages, tools, sloppy, json_mode, lazy=False):
+    """Het volgende antwoord van een model dat de taak goed doet, afgeleid uit het gesprek tot nu toe.
+    lazy: een model dat nooit bewijs verzamelt en bij elke beurt meteen een oordeel probeert te geven."""
+    if lazy:
+        native = bool(tools)
+        arguments = {"verdict": "valid", "reason": "guessing"}
+        if native:
+            return {"role": "assistant", "content": "", "tool_calls": [{"function": {"name": "submit_verdict", "arguments": arguments}}]}
+        return {"role": "assistant", "content": json.dumps({"tool": "submit_verdict", "arguments": arguments})}
     if json_mode and "All evidence is below" in messages[0]["content"]:  # variant 0
         evidence = json.loads(messages[1]["content"].split("\n\n", 1)[1])
         broken = CHECK["fn"](evidence["transactions"])
@@ -73,12 +80,13 @@ class FakeOllama(http.server.BaseHTTPRequestHandler):
             self._send({"version": "0.0.0-fake"})
         else:
             self._send({"models": [{"name": n, "digest": "sha256:" + n, "size": 2_000_000_000, "details": {"quantization_level": "Q4_K_M"}}
-                                   for n in ("good:1b", "sloppy:1b")]})
+                                   for n in ("good:1b", "sloppy:1b", "lazy:1b")]})
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         assert body["options"]["temperature"] == 0 and body["stream"] is False
-        message = fake_model(body["messages"], body.get("tools"), body["model"].startswith("sloppy"), body.get("format") == "json")
+        message = fake_model(body["messages"], body.get("tools"), body["model"].startswith("sloppy"), body.get("format") == "json",
+                             lazy=body["model"].startswith("lazy"))
         self._send({"message": message, "prompt_eval_count": 100, "eval_count": 20, "eval_duration": 2_000_000_000})
 
     def log_message(self, *args):
@@ -213,6 +221,12 @@ class Grfics(unittest.TestCase):
         self.assertEqual(grfics.check(policy, [{**read, "src": grfics.EWS, "fc": 6, "count": 1, "values": [7]}]), [])
         self.assertEqual(grfics.check(policy, [{**read, "src": "192.168.95.13", "dst": "192.168.95.11"}]), ["unknown_client"])
 
+    def test_a_function_code_without_a_table_is_not_illegal_address(self):
+        # fc 43 (device-id) heeft geen tabel; toegestaan maar zonder adres mag niet illegal_address worden.
+        policy = {"servers": {grfics.PLC: {"clients": {grfics.EWS: {"write": False}}, "functions": [43], "map": {}}}}
+        request = {"src": grfics.EWS, "dst": grfics.PLC, "fc": 43, "addr": None, "count": None, "values": None}
+        self.assertEqual(grfics.check(policy, [request]), [])
+
     def test_dataset_file_and_its_tools(self):
         with tempfile.TemporaryDirectory() as folder:
             raw, marks = grfics_traffic()
@@ -297,6 +311,35 @@ class Benchmark(unittest.TestCase):
         for argv in (("--cases", "6"), ("--dataset", self.grfics_file)):
             rows = self.rows("--models", "good:1b", "--variants", "mcp", *argv)
             self.assert_perfect(rows)
+
+    def test_resume_skips_a_truncated_last_line(self):
+        """Een kapotte laatste regel (bv. door een harde kill tijdens het schrijven) mag opnieuw starten niet laten crashen."""
+        dataset = datasets.load(None, 1, 1)
+        tb_check = CHECK["fn"]
+        CHECK["fn"] = dataset.check
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                out = pathlib.Path(folder) / "r.jsonl"
+                out.write_text('{"meta": true, "dataset_fingerprint": "' + dataset.fingerprint + '"}\n'
+                               '{"model": "good:1b", "variant": "direct", "case": "case-001", "repeat": 1, "ver')
+                run.main(["--models", "good:1b", "--variants", "direct", "--cases", "1", "--out", str(out)])
+                parsed = []
+                for line in out.read_text(encoding="utf-8").splitlines():
+                    try:
+                        parsed.append(json.loads(line))
+                    except ValueError:
+                        pass  # de oorspronkelijke kapotte regel: blijft op schijf staan, telt niet mee
+                rows = [row for row in parsed if not row.get("meta")]
+        finally:
+            CHECK["fn"] = tb_check
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(rows[0]["correct"])
+
+    def test_submitting_without_evidence_is_pushed_back(self):
+        rows = self.rows("--models", "lazy:1b", "--variants", "native", "--cases", "1")
+        self.assertIsNone(rows[0]["verdict"])
+        self.assertGreater(rows[0]["invalid_calls"], 0)
+        self.assertEqual(rows[0]["llm_calls"], runners.MAX_STEPS)
 
     def test_unknown_model_stops_before_anything_runs(self):
         with self.assertRaises(SystemExit) as stop:

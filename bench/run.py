@@ -154,7 +154,10 @@ def main(argv=None):
     done = set()
     if out.exists():
         for line in out.read_text(encoding="utf-8").splitlines():
-            row = json.loads(line)
+            try:
+                row = json.loads(line)
+            except ValueError:  # een kapotte laatste regel, bv. door een harde kill tijdens het schrijven
+                continue
             if row.get("meta"):
                 if row.get("dataset_fingerprint") != meta["dataset_fingerprint"]:
                     sys.exit(f"{out} is met een andere dataset gemaakt. Kies een ander --out.")

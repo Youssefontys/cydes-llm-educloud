@@ -14,13 +14,15 @@ def pick_models(current):
     print("   Meerdere: nummers of namen met komma's ertussen, bijvoorbeeld 1,2 of 1,mistral:7b")
     answer = ask("Welke", current, rf"(\d|{MODEL_NAME})(,(\d|{MODEL_NAME}))*")
     names = [MODELS[part][0] if part in MODELS else part for part in answer.split(",")]
-    if unknown := [n for n in names if re.fullmatch(r"\d", n)]:
+    if unknown := [n for n in names if re.fullmatch(r"\d+", n)]:
         stop(f"Nummer {', '.join(unknown)} staat niet in de lijst.", icon="🤔")
     return ",".join(dict.fromkeys(names))
 
 
 def pick_offering(current):
     print("\n💻 Welke grootte voor de VM met Ollama? Het geheugen bepaalt welk model past.")
+    print("   Let op: de quota van Educloud (CPU/geheugen) geldt voor je hele account, niet alleen dit project —")
+    print("   een andere VM van jou kan daar al ruimte van gebruiken.")
     for key, name in OFFERINGS.items():
         print(f"   {key}  {name}")
     default = next((k for k, v in OFFERINGS.items() if v == current), "2")

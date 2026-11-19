@@ -109,6 +109,24 @@ class LocalTools:
         return self.dataset.call(self.case, name, arguments)
 
 
+def _finish_or_call(stats, toolbox, name, arguments, final):
+    """Verwerkt één tool-aanroep met geldige argumenten (een dict); gedeeld door manual_loop en native_loop.
+
+    (True, None, de argumenten) als het de laatste tool was en er genoeg bewijs is. Anders (False, is_result, tekst):
+    is_result zegt of tekst een echte tool-uitkomst is (manual zet er dan "TOOL RESULT: " voor) of een duwtje omdat
+    er nog bewijs ontbreekt."""
+    if name == final["name"]:
+        missing = _missing_evidence(stats)
+        if missing:
+            stats["invalid_calls"] += 1
+            return False, False, missing
+        return True, None, arguments
+    result, ok = toolbox.call(name, arguments)
+    stats["invalid_calls"] += 0 if ok else 1
+    _track_evidence(stats, name, arguments, result, ok)
+    return False, True, json.dumps(result)
+
+
 def _verdict(reply, dataset):
     verdict = reply.get("verdict") if isinstance(reply, dict) else None
     return verdict if verdict in dataset.verdicts else None
@@ -155,17 +173,10 @@ def manual_loop(model, toolbox, final, stats, options, system, user):
             messages.append({"role": "user", "content": 'That was not valid. Reply with one JSON object: {"tool": "<name>", "arguments": {...}}.'})
             continue
         stats["tool_calls"] += 1
-        if name == final["name"]:
-            missing = _missing_evidence(stats)
-            if missing:
-                stats["invalid_calls"] += 1
-                messages.append({"role": "user", "content": missing})
-                continue
-            return arguments
-        result, ok = toolbox.call(name, arguments)
-        stats["invalid_calls"] += 0 if ok else 1
-        _track_evidence(stats, name, arguments, result, ok)
-        messages.append({"role": "user", "content": "TOOL RESULT: " + json.dumps(result)})
+        done, is_result, text = _finish_or_call(stats, toolbox, name, arguments, final)
+        if done:
+            return text
+        messages.append({"role": "user", "content": ("TOOL RESULT: " + text) if is_result else text})
     return None
 
 
@@ -191,17 +202,14 @@ def native_loop(model, toolbox, final, stats, options, system, user):
                 except ValueError:
                     arguments = None
             stats["tool_calls"] += 1
-            if name == final["name"] and isinstance(arguments, dict):
-                missing = _missing_evidence(stats)
-                if missing:
-                    stats["invalid_calls"] += 1
-                    messages.append({"role": "tool", "tool_name": name or "", "content": missing})
-                    continue
-                return arguments
-            result, ok = toolbox.call(name, arguments) if isinstance(arguments, dict) else ({"error": "arguments must be an object"}, False)
-            stats["invalid_calls"] += 0 if ok else 1
-            _track_evidence(stats, name, arguments if isinstance(arguments, dict) else {}, result, ok)
-            messages.append({"role": "tool", "tool_name": name or "", "content": json.dumps(result)})
+            if not isinstance(arguments, dict):
+                stats["invalid_calls"] += 1
+                messages.append({"role": "tool", "tool_name": name or "", "content": json.dumps({"error": "arguments must be an object"})})
+                continue
+            done, _, text = _finish_or_call(stats, toolbox, name, arguments, final)
+            if done:
+                return text
+            messages.append({"role": "tool", "tool_name": name or "", "content": text})
     return None
 
 
