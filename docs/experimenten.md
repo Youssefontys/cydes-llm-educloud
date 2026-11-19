@@ -40,3 +40,16 @@ permitteren, dus:
 doornemen**, omdat een klein model een enkele afwijkende transactie makkelijker mist in één lange tekst dan in een
 paar kortere stukken. Test: `native`, 4-6 cases, bewijs-afdwinging aan, `PAGE` terug naar 10 — vergelijk recall met
 de PAGE-30-meting van 2026-11-19 op dezelfde cases.
+
+## Volgende kandidaat, pas na de PAGE-test
+
+**Kwantisatie van hetzelfde model.** We draaien steeds qwen2.5:3b in Ollama's standaardkwantisatie (Q4_K_M) zonder
+dat ooit te hebben getest tegen een andere. Dat is een as die nog niemand heeft aangeraakt, en die past binnen
+"beperkte middelen": geen ander aantal parameters, alleen een andere compressie ervan.
+
+- **Q8_0** (minder lossy): meer geheugen, iets trager, mogelijk preciezer bij het vergelijken van registerranges —
+  relevant omdat de taak draait om exacte getallen vergelijken, waar afrondingsruis een rol kan spelen.
+- Een lagere kwantisatie (Q3/Q2) zou juist laten zien hoe weinig je kan weghalen voor het echt stukloopt.
+
+Niet gelijktijdig met de PAGE-test: eerst PAGE isoleren, dan pas kwantisatie als los experiment, anders weten we
+straks weer niet welke van de twee een verschil maakte.
