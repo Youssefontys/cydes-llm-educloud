@@ -109,7 +109,8 @@ def environment(models, args, dataset):
             "models": {m: {"digest": (tags.get(m) or {}).get("digest"), "size_mb": round(((tags.get(m) or {}).get("size") or 0) / 1e6),
                            "quantization": ((tags.get(m) or {}).get("details") or {}).get("quantization_level")} for m in models},
             "dataset": dataset.name, "dataset_fingerprint": dataset.fingerprint, "source": dataset.source, "cases": len(dataset.cases),
-            "num_ctx": args.num_ctx, "temperature": 0, "seed": args.seed, "max_steps": runners.MAX_STEPS}
+            "num_ctx": args.num_ctx, "max_output_tokens": args.max_output_tokens, "temperature": 0, "seed": args.seed,
+            "max_steps": runners.MAX_STEPS}
 
 
 def main(argv=None):
@@ -122,6 +123,9 @@ def main(argv=None):
     parser.add_argument("--only", help="alleen deze cases, ids gescheiden door komma's; voor een korte proef")
     parser.add_argument("--repeats", type=int, default=1, help="hoe vaak elke case (standaard 1); meer geeft de consistentie")
     parser.add_argument("--num-ctx", type=int, default=4096, help="contextvenster in tokens (standaard 4096)")
+    parser.add_argument("--max-output-tokens", type=int, default=600,
+                        help="cap op de lengte van één antwoord (standaard 600); voorkomt dat een doorratelend model "
+                             "de timeout van ollama() raakt")
     parser.add_argument("--out", default="results/results.jsonl", help="het JSONL-bestand met de uitkomsten")
     args = parser.parse_args(argv)
     models = [m.strip() for m in args.models.split(",") if m.strip()]
@@ -164,7 +168,7 @@ def main(argv=None):
             sys.exit("De variant mcp vraagt het pakket mcp: pip install -r requirements.txt, of laat mcp weg met --variants.")
         bridge = McpBridge(dataset)
 
-    options = {"temperature": 0, "seed": args.seed, "num_ctx": args.num_ctx}
+    options = {"temperature": 0, "seed": args.seed, "num_ctx": args.num_ctx, "num_predict": args.max_output_tokens}
     total = len(models) * len(variants) * len(dataset.cases) * args.repeats
     print(f"{total} runs op de dataset {dataset.name} ({len(dataset.cases)} cases), waarvan {len(done)} al gedaan; uitkomsten in {out}")
     with out.open("a", encoding="utf-8") as f:

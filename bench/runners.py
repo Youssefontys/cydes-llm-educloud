@@ -69,6 +69,21 @@ def _evidence_complete(stats):
     return stats["policy_seen"] and stats["transactions_seen"] >= stats["transactions_total"]
 
 
+def _missing_evidence(stats):
+    """None: genoeg bewijs om te oordelen. Anders een zin voor het model over wat nog moet, in plaats van het oordeel
+    zomaar te accepteren (bleek bij een eerdere meting bijna nooit compleet: 0-5% van de runs)."""
+    if not stats["policy_seen"]:
+        return "You have not called get_policy yet. Call it before you give your answer."
+    if stats["transactions_total"] is None:
+        return "You have not called get_transactions yet. Call it before you give your answer."
+    if stats["transactions_seen"] < stats["transactions_total"]:
+        return (f"You have only seen {stats['transactions_seen']} of {stats['transactions_total']} transactions. "
+                "Call get_transactions again with a higher start before you give your answer.")
+    if stats["register_calls"] < 1:
+        return "You have not checked a register map or register info yet. Call that tool before you give your answer."
+    return None
+
+
 def chat(model, messages, stats, options, tools=None, json_mode=False):
     body = {"model": model, "messages": messages, "stream": False, "options": options}
     if tools:
@@ -141,6 +156,11 @@ def manual_loop(model, toolbox, final, stats, options, system, user):
             continue
         stats["tool_calls"] += 1
         if name == final["name"]:
+            missing = _missing_evidence(stats)
+            if missing:
+                stats["invalid_calls"] += 1
+                messages.append({"role": "user", "content": missing})
+                continue
             return arguments
         result, ok = toolbox.call(name, arguments)
         stats["invalid_calls"] += 0 if ok else 1
@@ -172,6 +192,11 @@ def native_loop(model, toolbox, final, stats, options, system, user):
                     arguments = None
             stats["tool_calls"] += 1
             if name == final["name"] and isinstance(arguments, dict):
+                missing = _missing_evidence(stats)
+                if missing:
+                    stats["invalid_calls"] += 1
+                    messages.append({"role": "tool", "tool_name": name or "", "content": missing})
+                    continue
                 return arguments
             result, ok = toolbox.call(name, arguments) if isinstance(arguments, dict) else ({"error": "arguments must be an object"}, False)
             stats["invalid_calls"] += 0 if ok else 1

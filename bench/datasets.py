@@ -11,7 +11,7 @@ import pathlib
 
 from . import grfics, modbus
 
-PAGE = 10
+PAGE = 30
 FIELDS = ("Fields: i (index), t (seconds since the start of the case), src (client IP), dst (server IP), fc (function code), "
           "addr (first register or coil), count, values (written values or null), exception (exception code of the reply, or null).")
 REPORT = {"name": "report_findings", "description": "Hand your findings to the reviewer and stop.",

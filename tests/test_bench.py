@@ -32,12 +32,14 @@ def fake_model(messages, tools, sloppy, json_mode):
     native = bool(tools)
     names = [t["function"]["name"] for t in tools or []]
     final = "report_findings" if "report_findings" in names or (not native and "report_findings" in messages[0]["content"]) else "submit_verdict"
-    seen, total, policy = [], None, False
+    register_tool = "get_register_map" if "get_register_map" in names or (not native and "get_register_map" in messages[0]["content"]) else "get_register_info"
+    seen, total, policy, register_seen = [], None, False, False
     for m in messages:
         text = m.get("content") or ""
         if m["role"] == "tool" or text.startswith("TOOL RESULT: "):
             data = json.loads(text.removeprefix("TOOL RESULT: "))
             policy = policy or "rules" in data
+            register_seen = register_seen or "writable_by" in data or "map" in data
             if "transactions" in data:
                 total = data["total"]
                 seen += data["transactions"]
@@ -47,6 +49,9 @@ def fake_model(messages, tools, sloppy, json_mode):
         name, arguments = "get_policy", {}
     elif total is None or len(seen) < total:
         name, arguments = "get_transactions", {"start": len(seen)}
+    elif not register_seen:
+        name = register_tool
+        arguments = {"server": seen[0]["dst"]} if register_tool == "get_register_map" else {"address": seen[0]["addr"]}
     else:
         broken = CHECK["fn"](seen)
         verdict = broken[0] if broken else "valid"
@@ -155,7 +160,8 @@ class Synthetic(unittest.TestCase):
         d = datasets.Synthetic(3, 1)
         case = d.cases[0]
         self.assertTrue(d.call(case, "get_policy", {})[1])
-        self.assertEqual(len(d.call(case, "get_transactions", {"start": 0})[0]["transactions"]), datasets.PAGE)
+        self.assertEqual(len(d.call(case, "get_transactions", {"start": 0})[0]["transactions"]),
+                         min(datasets.PAGE, len(case["transactions"])))
         for name, arguments in (("get_transactions", {"start": -1}), ("get_transactions", {"start": "0"}), ("get_register_info", {"address": 100}),
                                 ("get_register_info", {}), ("delete_everything", {}), ("get_policy", "x")):
             self.assertFalse(d.call(case, name, arguments)[1], (name, arguments))
