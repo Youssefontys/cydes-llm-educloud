@@ -223,6 +223,7 @@ Niet getest:
 | Datum | VM | Modellen | Dataset | Bestand | Uitkomst |
 |---|---|---|---|---|---|
 | 2026-11-17 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-17-qwen2.5-3b.jsonl](results/2026-11-17-qwen2.5-3b.jsonl) | zie tabellen hieronder |
+| 2026-11-18 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-18-qwen2.5-3b.jsonl](results/2026-11-18-qwen2.5-3b.jsonl) | herhaling, met `reason` en `evidence_complete`; zie tabellen hieronder |
 
 Een proefrun telt niet als meting: die is om te zien dat de keten werkt. Zet bij een meting die telt het JSONL-bestand
 in git (`git add -f results/<naam>.jsonl`) en de tabellen van `bench.report` hieronder.
@@ -250,6 +251,34 @@ grfics-2026-11-17.json), context 4096 tokens. qwen2.5:3b: 1930 MB, Q4_K_M, diges
 en de commit die het toevoegde). `mcp` heeft de laagste recall (22%): het model mist de meeste overtredingen en zegt te
 vaak `valid`. `native` heeft de beste F1 (67%) ondanks maar 45% exacte treffers, dankzij hoge precision. `multi` kost
 7,5x zoveel modelaanroepen als `direct` en bijna 1.000 CPU-seconden per run, voor een F1 die lager is dan `native`.
+
+### 2026-11-18: dezelfde meting, met reason en evidence_complete
+
+Gemeten op 2026-11-18T16:54:03+00:00: dezelfde VM, hetzelfde model en dezelfde dataset als hierboven; context 4096
+tokens. qwen2.5:3b: 1930 MB, Q4_K_M, digest 357c53fb659c.
+
+| Model | Variant | Runs | Juist | Precision | Recall | F1 | Consistent | Geen oordeel | Ongeldige aanroepen per run | Volledig bewijs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | direct | 20 | 15% | 45% | 100% | 62% | - | 0 | 0.0 | - |
+| qwen2.5:3b | manual | 20 | 35% | 55% | 67% | 60% | - | 0 | 0.0 | 0% |
+| qwen2.5:3b | native | 20 | 45% | 83% | 56% | 67% | - | 4 | 1.1 | 0% |
+| qwen2.5:3b | mcp | 20 | 35% | 50% | 22% | 31% | - | 2 | 0.4 | 5% |
+| qwen2.5:3b | multi | 20 | 45% | 60% | 33% | 43% | - | 2 | 1.6 | 5% |
+
+| Model | Variant | Aanroepen model per run | Mediaan seconden | Tokens per seconde | CPU-seconden per run | Piekgeheugen MB | MCP-server MB | MCP-server CPU-seconden |
+|---|---|---|---|---|---|---|---|---|
+| qwen2.5:3b | direct | 1.0 | 133 | 3.5 | 260 | 4347 | - | - |
+| qwen2.5:3b | manual | 4.5 | 92 | 4.0 | 208 | 6227 | - | - |
+| qwen2.5:3b | native | 4.0 | 294 | 3.8 | 702 | 8272 | - | - |
+| qwen2.5:3b | mcp | 4.4 | 314 | 3.7 | 751 | 10375 | 66 | 0.0 |
+| qwen2.5:3b | multi | 7.5 | 447 | 3.7 | 1004 | 10376 | - | - |
+
+De kwaliteit komt nagenoeg overeen met de meting van 17-11 (reproduceerbaar), en de nieuwe kolom legt de kernoorzaak
+bloot: in 0-5% van de runs had het model alle transacties gezien voordat het oordeelde. Bij de rest (gemiddeld
+10-12 van de ~24 transacties gezien) deed het model het ongeveer even goed als gokken op de meerderheidsklasse
+(valid), niet beter. Ook sloeg het model in 50-60% van de runs de registertool (`get_register_map`) helemaal over,
+wat `illegal_address`-overtredingen structureel onzichtbaar maakt. Twee runs liepen vast op de timeout van 900s in
+`ollama()` (`native` en `multi`), niet alleen bij een groter model.
 
 ## GRFICSv3
 
