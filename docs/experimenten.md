@@ -117,11 +117,24 @@ met een parameter opbouwt en hoe deze harness (of Ollama's native tool-calling) 
 volledige meting):
 [results/proef-llama3.2-3b-native.jsonl](../results/proef-llama3.2-3b-native.jsonl).
 
-## Volgende vraag: ligt dit aan native tool-calling zelf, of aan het model in het geheel?
+## Getest: ligt het aan native tool-calling, of aan llama3.2:3b zelf?
 
-Twee vervolgopties, allebei goedkoop:
-1. **`llama3.2:3b` op `manual`** (dezelfde 20 cases): `manual` gebruikt geen Ollama-native tool-calling maar tekst-in-
-   de-prompt, door onze eigen code ontleed. Werkt dat wél, dan is het probleem specifiek de native-tool-calling-vorm,
-   niet het model of de taak zelf.
-2. **`qwen3:4b` op `native`**: een ander model, zelfde schaal, wél bevestigd met het "tools"-label in de Ollama
-   Library. Werkt dát wel, dan is llama3.2:3b's storing modelspecifiek, niet schaal- of harnessbreed.
+**Test (2026-11-20)**: `llama3.2:3b` op `manual` (alle 20 cases) — geen Ollama-native tool-calling, puur JSON-in-de-
+prompt dat onze eigen code ontleedt.
+
+**Uitkomst: niet de native-tool-calling-vorm — het is breder.** Alle 20 cases eindigden ook hier in `geen oordeel`,
+met `transactions_total` overal `null`. `get_policy` en de registertool (die wél een argument heeft, `server`) lukten
+steeds; alleen `get_transactions` (argument `start`, een integer) lukte in **geen van de 40 pogingen over beide
+varianten** (20 native + 20 manual). Vermoedelijke oorzaak, niet bevestigd: `llama3.2:3b` levert `start` mogelijk als
+tekst (`"0"`) in plaats van een getal (`0`), en onze validatie (`_int()` in `bench/datasets.py`) wijst dat af. Bestand:
+[results/proef-llama3.2-3b-manual.jsonl](../results/proef-llama3.2-3b-manual.jsonl).
+
+**Conclusie van dit spoor**: `llama3.2:3b` is in deze opzet niet bruikbaar voor de tool-varianten — niet omdat het
+zwakker redeneert dan qwen2.5:3b, maar omdat het een specifieke, consistente storing heeft bij één tool-argument,
+over twee onafhankelijke aanroepmethodes heen. Dit is zelf een valide bevinding: niet elk model met het "tools"-label
+in de Ollama Library is in de praktijk betrouwbaar, ook niet op dezelfde schaal als qwen2.5:3b. Een fix (bv. `start`
+coërceren van tekst naar getal voor de validatie) is mogelijk, maar gezien hoe consistent en breed deze storing is,
+is de vraag of dat de moeite waard is tegenover gewoon vaststellen dat dit model hier niet geschikt voor is.
+
+**Nog open**: `qwen3:4b` (ook bevestigd met het "tools"-label) is nog niet geprobeerd — dat zou laten zien of dit
+llama-specifiek is, of dat meer modellen op deze schaal met zo'n storing kampen.
