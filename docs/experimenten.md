@@ -87,9 +87,24 @@ ondanks dat beide velden in het schema staan — dus ook onbetrouwbaar in het ge
 wel in de code staan (goedkoop, optioneel, nu al gezien dat het soms waardevolle informatie geeft zoals bij
 grfics-016) — alleen de hypothese dat het de ingestorte recall zou verklaren, klopt niet.
 
-## Volgende kandidaat
+## Einde van dit onderzoeksspoor: conclusie
 
-**De bewijs-afdwinging zelf.** Drie andere verklaringen (`PAGE`, kwantisatie, confidence) zijn nu uitgesloten op
-deze zelfde 6 cases. Test: dezelfde 6 cases, `native`, bewijs-afdwinging **uit** (terug naar de code van vóór
-2026-11-19) — als de recall dan weer omhooggaat, is dat de boosdoener; blijft hij laag, dan ligt het ergens anders
-(bv. `num_predict`, of simpelweg de grens van wat dit model op deze cases kan).
+Drie onafhankelijke ingrepen (`PAGE`, kwantisatie, confidence) kwamen alle drie uit op precies 3 van de 6 goed op
+recall, steeds met andere cases. Dat betekent één van twee dingen: een echt plafond van qwen2.5:3b op deze cases,
+of een steekproef van 6 die te klein is om verschil te laten zien — in beide gevallen heeft nog een vierde ablatie
+op dezelfde 6 cases weinig meerwaarde meer.
+
+**Vastgestelde conclusie voor dit spoor**: bewijs afdwingen (+ `PAGE` 10→30 + `num_predict`-cap, als één pakket
+ingevoerd op 2026-11-19) verbeterde `multi` (F1 43%→56%) maar verslechterde `manual`, `native` en `mcp` (F1 60%→20%,
+67%→43%, 31%→20%). Drie losse, geteste verklaringen (PAGE, kwantisatie, een expliciet onzekerheidssignaal)
+verklaren die verslechtering niet. De precieze oorzaak blijft open — dat melden we als een eerlijke beperking,
+niet als opgelost. De bewijs-afdwinging zelf blijft aan staan: hij is de enige ingreep die ooit iets aantoonbaar
+verbeterde (`multi`), en uitzetten zou dat weer ongedaan maken zonder dat we weten of het de andere vier echt
+repareert.
+
+## Volgende vraag: is dit qwen2.5:3b-specifiek, of geldt het voor elk model op deze schaal?
+
+Nog nooit getest: een ánder model van dezelfde grootteklasse (3-4B, niet groter) naast qwen2.5:3b. Dat is geen
+herhaling van de eerdere "groter model"-discussie (die we afwezen) — dit blijft binnen "beperkte middelen", en
+beantwoordt een vraag die het project zelf al stelt: welke lokale LLM is geschikt voor deze taak? Kandidaten die al
+in `scripts/deployment.py` staan en tool-calling ondersteunen: `llama3.2:3b`, `qwen3:4b`.
