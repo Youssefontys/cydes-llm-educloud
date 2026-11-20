@@ -19,7 +19,7 @@ import urllib.request
 from .datasets import REPORT, schema
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
-MAX_STEPS = 12
+MAX_STEPS = 20
 TASK = ("You validate Modbus/TCP traffic against a security policy. Read the policy, read ALL transactions of the case "
         "(page through them until you have seen the total), and decide whether the traffic is valid or which single rule it breaks.")
 VARIANTS = ("direct", "manual", "native", "mcp", "multi")
