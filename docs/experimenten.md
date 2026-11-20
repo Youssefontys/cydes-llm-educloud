@@ -47,18 +47,25 @@ PAGE 10 gaf 2 van de 6 "geen oordeel" tegen 0 bij PAGE 30: drie pagina's opvrage
 stappenbudget van 12, waardoor een case vaker vastloopt voor hij klaar is. `PAGE` staat terug op 30 (de gemeten,
 vastgelegde staat); dit was de nulhypothese, geen fix.
 
-**Dus niet `PAGE` alleen.** Waarschijnlijker verdachte nu: de bewijs-afdwinging zelf (meer aanroepen, meer
-opgebouwde context per case) of de `num_predict`-cap van 600 tokens — niet getest, niet uitgesloten.
+## Getest: hielp een andere kwantisatie?
 
-## Volgende kandidaten
+**Hypothese**: Q8_0 (minder lossy dan het standaard Q4_K_M) zou preciezer kunnen zijn bij het vergelijken van
+registerranges. Test (2026-11-20): `qwen2.5:3b-instruct-q8_0` (3,3GB), zelfde 6 cases als de PAGE-ablatie, `native`,
+PAGE op 30 (de vastgelegde staat), bewijs-afdwinging aan.
 
-**Kwantisatie van hetzelfde model.** We draaien steeds qwen2.5:3b in Ollama's standaardkwantisatie (Q4_K_M) zonder
-dat ooit te hebben getest tegen een andere. Dat is een as die nog niemand heeft aangeraakt, en die past binnen
-"beperkte middelen": geen ander aantal parameters, alleen een andere compressie ervan.
+**Uitkomst: niet bevestigd, iets slechter.** Op recall: Q4_K_M 3/6, Q8_0 2/6 — `grfics-017` ging van "detecteert een
+overtreding, verkeerde regel" naar "gemist" (`valid`). Exacte juistheid: beide 1/6. Kwantisatie is dus ook geen
+verklaring voor de ingestorte recall.
 
-- **Q8_0** (minder lossy): meer geheugen, iets trager, mogelijk preciezer bij het vergelijken van registerranges —
-  relevant omdat de taak draait om exacte getallen vergelijken, waar afrondingsruis een rol kan spelen.
-- Een lagere kwantisatie (Q3/Q2) zou juist laten zien hoe weinig je kan weghalen voor het echt stukloopt.
+Wel een aparte, bruikbare bijvangst: Q8_0 had voor 5 van de 6 cases veel minder modelaanroepen nodig (2-5 tegen 5-8)
+en was per case 2-3x sneller — behalve bij `grfics-017`, waar het dubbel zoveel tijd kostte en het alsnog mis had.
+Interessant voor een latere kosten/kwaliteit-afweging, maar geen fix voor dit probleem.
 
-Niet gelijktijdig met de PAGE-test: eerst PAGE isoleren, dan pas kwantisatie als los experiment, anders weten we
-straks weer niet welke van de twee een verschil maakte.
+**Twee verdachten nu uitgesloten: `PAGE` en kwantisatie.** Overgebleven: de bewijs-afdwinging zelf, en de
+`num_predict`-cap.
+
+## Volgende kandidaat
+
+**De bewijs-afdwinging zelf.** Twee andere verklaringen (`PAGE`, kwantisatie) zijn nu uitgesloten op deze zelfde 6
+cases. Test: dezelfde 6 cases, `native`, bewijs-afdwinging **uit** (terug naar de code van vóór 2026-11-19) — als de
+recall dan weer omhooggaat, is dat de boosdoener; blijft hij laag, dan ligt het ergens anders (bv. `num_predict`).
