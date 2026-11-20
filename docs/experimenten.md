@@ -102,9 +102,26 @@ niet als opgelost. De bewijs-afdwinging zelf blijft aan staan: hij is de enige i
 verbeterde (`multi`), en uitzetten zou dat weer ongedaan maken zonder dat we weten of het de andere vier echt
 repareert.
 
-## Volgende vraag: is dit qwen2.5:3b-specifiek, of geldt het voor elk model op deze schaal?
+## Getest: doet llama3.2:3b het ook zo op deze schaal?
 
-Nog nooit getest: een ánder model van dezelfde grootteklasse (3-4B, niet groter) naast qwen2.5:3b. Dat is geen
-herhaling van de eerdere "groter model"-discussie (die we afwezen) — dit blijft binnen "beperkte middelen", en
-beantwoordt een vraag die het project zelf al stelt: welke lokale LLM is geschikt voor deze taak? Kandidaten die al
-in `scripts/deployment.py` staan en tool-calling ondersteunen: `llama3.2:3b`, `qwen3:4b`.
+**Test (2026-11-20)**: `llama3.2:3b`, `native`, alle 20 cases (niet een steekproef van 6 — dit is de modelvraag, geen
+ablatie, dus meteen de volledige dataset om een eerlijk vergelijkbaar cijfer te krijgen met qwen2.5:3b's
+20-case-resultaat). Gestopt na 12 van de 20: het patroon was al volledig consistent.
+
+**Uitkomst: geen kwaliteitsverschil met qwen2.5:3b — een harde, structurele storing.** Alle 12 afgeronde cases
+eindigden in `geen oordeel`, en in **geen enkele** daarvan werd `get_transactions` ooit succesvol aangeroepen
+(`transactions_total` bleef `null` in alle 12, terwijl `get_policy` — die geen argumenten nodig heeft — wel altijd
+lukte). Gemiddeld 7,9 tool-aanroepen en 11,9 ongeldige aanroepen per case, steeds tegen de stappenlimiet van 12 aan.
+Dit lijkt geen subtiel kwaliteitsverschil maar een onverenigbaarheid tussen hoe `llama3.2:3b` argumenten voor een tool
+met een parameter opbouwt en hoe deze harness (of Ollama's native tool-calling) dat verwacht. Bestand (12 cases, geen
+volledige meting):
+[results/proef-llama3.2-3b-native.jsonl](../results/proef-llama3.2-3b-native.jsonl).
+
+## Volgende vraag: ligt dit aan native tool-calling zelf, of aan het model in het geheel?
+
+Twee vervolgopties, allebei goedkoop:
+1. **`llama3.2:3b` op `manual`** (dezelfde 20 cases): `manual` gebruikt geen Ollama-native tool-calling maar tekst-in-
+   de-prompt, door onze eigen code ontleed. Werkt dat wél, dan is het probleem specifiek de native-tool-calling-vorm,
+   niet het model of de taak zelf.
+2. **`qwen3:4b` op `native`**: een ander model, zelfde schaal, wél bevestigd met het "tools"-label in de Ollama
+   Library. Werkt dát wel, dan is llama3.2:3b's storing modelspecifiek, niet schaal- of harnessbreed.
