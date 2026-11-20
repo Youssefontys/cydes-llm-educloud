@@ -137,6 +137,11 @@ def _reason(reply):
     return reason[:300] if isinstance(reason, str) else None
 
 
+def _confidence(reply):
+    confidence = reply.get("confidence") if isinstance(reply, dict) else None
+    return confidence if confidence in ("low", "medium", "high") else None
+
+
 def direct(model, dataset, case, stats, options):
     """Variant 0: geen tools, alles in de prompt, één antwoord."""
     verdicts = ", ".join(dataset.verdicts)
@@ -236,4 +241,4 @@ def run_case(variant, model, dataset, case, options, mcp_bridge=None):
     else:
         raise ValueError(f"onbekende variant {variant!r}")
     stats["evidence_complete"] = _evidence_complete(stats)
-    return _verdict(answer, dataset), _reason(answer), stats
+    return _verdict(answer, dataset), _reason(answer), _confidence(answer), stats

@@ -20,7 +20,7 @@ REPORT = {"name": "report_findings", "description": "Hand your findings to the r
 
 def schema(tool):
     """Het tool als JSON-schema, in de vorm die Ollama en MCP verwachten."""
-    required = [k for k in tool["parameters"] if k != "reason"]
+    required = [k for k in tool["parameters"] if k not in ("reason", "confidence")]
     return {"type": "function", "function": {"name": tool["name"], "description": tool["description"],
                                              "parameters": {"type": "object", "properties": tool["parameters"], "required": required}}}
 
@@ -44,7 +44,9 @@ class Dataset:
         return {"name": "submit_verdict",
                 "description": "Give the final answer and stop. verdict is 'valid' or the name of the broken rule: " + ", ".join(self.verdicts[1:]) + ".",
                 "parameters": {"verdict": {"type": "string", "enum": list(self.verdicts)},
-                               "reason": {"type": "string", "description": "One sentence: which transaction and why."}}}
+                               "reason": {"type": "string", "description": "One sentence: which transaction and why."},
+                               "confidence": {"type": "string", "enum": ["low", "medium", "high"],
+                                             "description": "How sure you are of this verdict, given the evidence you checked."}}}
 
     def call(self, case, name, arguments):
         """Voert een tool uit op deze case. Geeft (resultaat, geldig): een onbekende naam of verkeerde argumenten is ongeldig."""

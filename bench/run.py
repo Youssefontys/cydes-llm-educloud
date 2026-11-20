@@ -186,15 +186,15 @@ def main(argv=None):
                             n += 1
                             if (model, variant, case["id"], repeat) in done:
                                 continue
-                            started, error, verdict, reason, stats = time.monotonic(), None, None, None, runners.Stats()
+                            started, error, verdict, reason, confidence, stats = time.monotonic(), None, None, None, None, runners.Stats()
                             with ProcessMeter(is_ollama) as llm, ProcessMeter(is_mcp_server) as server:
                                 try:
-                                    verdict, reason, stats = runners.run_case(variant, model, dataset, case, options, bridge)
+                                    verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case, options, bridge)
                                 except Exception as problem:  # één mislukte run mag de rest niet stoppen
                                     error = f"{type(problem).__name__}: {problem}"[:300]
                             wall = time.monotonic() - started
                             row = {"model": model, "variant": variant, "case": case["id"], "repeat": repeat, "label": case["label"],
-                                   "verdict": verdict, "reason": reason, "correct": verdict == case["label"],
+                                   "verdict": verdict, "reason": reason, "confidence": confidence, "correct": verdict == case["label"],
                                    "correct_binary": verdict is not None and (verdict == "valid") == (case["label"] == "valid"),
                                    "wall_seconds": round(wall, 2), **{k: round(v, 3) if isinstance(v, float) else v for k, v in stats.items()},
                                    "tokens_per_second": round(stats["output_tokens"] / stats["eval_seconds"], 2) if stats["eval_seconds"] else None,
