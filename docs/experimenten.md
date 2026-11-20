@@ -200,5 +200,26 @@ ook waar het inhoudelijk mis zat of bleef doorzoeken. Dat wijst op betere instru
 los van de vraag of het antwoord zelf juist is. Bestand:
 [results/proef-7b-4cpu-page2.jsonl](../results/proef-7b-4cpu-page2.jsonl) (2 cases, geen volledige meting).
 
-**Vervolg**: een iets grotere (nog steeds goedkope) proef — 6 cases op `native`, dezelfde opzet als de eerdere
-ablaties — voor we overwegen hier een volledige meting aan te wagen.
+## Getest: is qwen2.5:7b daadwerkelijk beter, op dezelfde 6 cases?
+
+**Test (2026-11-20)**: `qwen2.5:7b`, `native`, dezelfde 6 cases als alle eerdere ablaties (grfics-001, 005, 012, 013,
+016, 017) — nu op de Large Instance (4 CPU), zonder timeouts.
+
+**Uitkomst: nee — 0 van de 6 goed, slechter dan qwen2.5:3b's steeds terugkerende 3/6.** In 5 van de 6 cases riep
+7b de registertool **zes keer** aan (tegen 1x normaal) en liep daarmee de volle 12 stappen op zonder ooit
+`submit_verdict` te bereiken — `geen oordeel`, niet fout, gewoon nooit klaar. De ene case die wél een oordeel gaf
+(`grfics-001`) was fout, met een verzonnen reden. Bestand:
+[results/proef-7b-6cases.jsonl](../results/proef-7b-6cases.jsonl).
+
+**Dit bevestigt en verscherpt de `MAX_STEPS`-hypothese, over twee modellen heen.** qwen2.5:3b liep bij `PAGE=10`
+vast door te veel pagineringsaanroepen; qwen2.5:7b loopt vast door herhaalde, overbodige verificatie
+(6x dezelfde registertool). Verschillend gedrag, dezelfde onderliggende muur: 12 stappen is te weinig zodra een
+model grondig probeert te zijn. 7b is dus niet "beter" gebleken — het faalt alleen netter (0-1 ongeldige aanroepen
+tegen 2-10 bij 3b), zonder dat vaker tot een goed oordeel te komen. De eerdere winst (geen timeouts meer dankzij
+4 CPU's) staat los hiervan en blijft overeind.
+
+## Volgende, nu dubbel onderbouwde kandidaat
+
+**`MAX_STEPS` verhogen** (nu 12, bv. naar 18-20) — relevant voor zowel qwen2.5:3b (PAGE=10, te veel paginering) als
+qwen2.5:7b (te veel herverificatie). Dit is geen nieuw zijspoor meer, maar de samenvoeging van twee onafhankelijke
+bevindingen tot één gerichte test.
