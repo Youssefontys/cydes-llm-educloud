@@ -34,14 +34,23 @@ permitteren, dus:
 | 2026-11-18 | `reason`- en `evidence_complete`-logging toegevoegd (geen gedragswijziging) | Bevestigt de logging het vermoeden met cijfers? | Ja: 0-5% volledig bewijs, bevestigd over de hele dataset. | Bewijs afdwingen. |
 | 2026-11-19 | Drie dingen tegelijk: bewijs afgedwongen (geen oordeel zonder volledig bewijs), `PAGE` 10→30, `num_predict`-cap 600 | Verbetert afgedwongen bewijs de kwaliteit? | **Gemengd, en voor drie van de vijf averechts.** Volledig bewijs ging naar 100% in alle tool-varianten. F1 ging omlaag bij `manual` (60%→20%), `native` (67%→43%) en `mcp` (31%→20%) — met volledig bewijs koos het model vaker `valid` bij een echte overtreding. **`multi` werd juist beter (43%→56%)** — de reviewer-stap lijkt baat te hebben bij afgedwongen bewijs. Kosten: 2-3x zoveel modelaanroepen en CPU-tijd. Omdat drie dingen tegelijk veranderden, weten we niet welke van de drie de verslechtering bij de andere vier veroorzaakte. | Isoleren: `PAGE` terug naar 10, afdwinging aan laten, klein testen op `native`. |
 
-## Hypothese die nu getest wordt
+## Getest: was PAGE de boosdoener?
 
-**Alle transacties in één grote brok (PAGE 30) is slechter dan ze in kleinere stukken (PAGE 10, zoals voorheen)
-doornemen**, omdat een klein model een enkele afwijkende transactie makkelijker mist in één lange tekst dan in een
-paar kortere stukken. Test: `native`, 4-6 cases, bewijs-afdwinging aan, `PAGE` terug naar 10 — vergelijk recall met
-de PAGE-30-meting van 2026-11-19 op dezelfde cases.
+**Hypothese**: alle transacties in één grote brok (PAGE 30) is slechter dan ze in kleinere stukken (PAGE 10)
+doornemen. Test (2026-11-19/20): `native`, 6 cases (grfics-001, 005, 012, 013, 016, 017; dezelfde cases als in de
+PAGE-30-meting), bewijs-afdwinging aan, `PAGE` terug naar 10.
 
-## Volgende kandidaat, pas na de PAGE-test
+**Uitkomst: niet bevestigd — ongeveer gelijkspel, met een nieuwe kost erbij.** Op "detecteert het een overtreding"
+(de recall-maatstaf) scoorden beide 3 van de 6 goed, alleen andere cases: PAGE 10 repareerde grfics-001 en -012,
+maar liet grfics-005 en -017 juist verslechteren (van `valid`/"iets gedetecteerd" naar geen oordeel/`valid`). En
+PAGE 10 gaf 2 van de 6 "geen oordeel" tegen 0 bij PAGE 30: drie pagina's opvragen in plaats van één eet in het
+stappenbudget van 12, waardoor een case vaker vastloopt voor hij klaar is. `PAGE` staat terug op 30 (de gemeten,
+vastgelegde staat); dit was de nulhypothese, geen fix.
+
+**Dus niet `PAGE` alleen.** Waarschijnlijker verdachte nu: de bewijs-afdwinging zelf (meer aanroepen, meer
+opgebouwde context per case) of de `num_predict`-cap van 600 tokens — niet getest, niet uitgesloten.
+
+## Volgende kandidaten
 
 **Kwantisatie van hetzelfde model.** We draaien steeds qwen2.5:3b in Ollama's standaardkwantisatie (Q4_K_M) zonder
 dat ooit te hebben getest tegen een andere. Dat is een as die nog niemand heeft aangeraakt, en die past binnen
