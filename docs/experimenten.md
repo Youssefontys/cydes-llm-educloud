@@ -138,3 +138,48 @@ is de vraag of dat de moeite waard is tegenover gewoon vaststellen dat dit model
 
 **Nog open**: `qwen3:4b` (ook bevestigd met het "tools"-label) is nog niet geprobeerd — dat zou laten zien of dit
 llama-specifiek is, of dat meer modellen op deze schaal met zo'n storing kampen.
+
+## Terug naar qwen2.5:3b: bewijs-afdwinging alsnog geïsoleerd, op volle schaal
+
+Na vier losse testjes (PAGE, kwantisatie, confidence, llama3.2:3b) zonder doorbraak ontstond terecht de vraag of we
+aan het rondjes draaien waren. In plaats van nog een losse ablatie: één beslissende test op de **volledige** dataset
+(niet 6 cases), die de laatste nog openstaande vraag uit de conclusie hierboven alsnog beantwoordt.
+
+**Test (2026-11-20)**: `native`, qwen2.5:3b, alle 20 cases, exact de instellingen van de 18-11-meting (`PAGE=10`,
+geen `num_predict`-cap) — bewijs-afdwinging is het enige verschil met 18-11.
+
+**Uitkomst: bewijs-afdwinging is wél degelijk (mede)schuldig — maar alleen in combinatie met een krap
+stappenbudget.**
+
+| Config | F1 | Recall | Geen oordeel |
+|---|---|---|---|
+| `native`, geen afdwinging, PAGE 10, geen cap (18-11) | 67% | 56% | 4/20 (20%) |
+| `native`, afdwinging + PAGE 30 + cap 600 (19-11) | 43% | 33% | 3/20 (15%) |
+| `native`, afdwinging + PAGE 10 + geen cap (20-11, dit) | **18%** | **11%** | **12/20 (60%)** |
+
+Dit is de slechtste van de drie. Verklaring: bij `PAGE=10` kost het ophalen van alle transacties 2-3 aanroepen in
+plaats van 1; samen met de eis van bewijs-afdwinging (beleid + alle pagina's + registertool + oordeel, vaak met
+herkansingen) loopt het stappenbudget van 12 in 60% van de cases vast vóór er een oordeel is — tegen 15-20% in de
+andere twee configuraties. Bestand:
+[results/2026-11-20-enforcement-only.jsonl](../results/2026-11-20-enforcement-only.jsonl).
+
+**Conclusie**: bewijs-afdwinging is op zichzelf niet per se slecht — hij maakt de taak alleen duurder in stappen, en
+`PAGE=30` was (onbedoeld) een gedeeltelijke compensatie daarvoor door het aantal paginering-aanroepen te verlagen.
+Zonder die compensatie wordt het stappenbudget de dominante bottleneck, niet de bewijseis zelf. `PAGE` blijft op 30
+en de afdwinging blijft aan — die combinatie (19-11, F1 43%) is dus beter dan afdwinging alleen (F1 18%), ook al is
+geen van beide zo goed als zonder afdwinging (F1 67%). Dit maakt de eerdere conclusie preciezer, niet ongedaan: de
+oorzaak lag deels wél bij de afdwinging, specifiek door zijn stappenkost, niet door iets inhoudelijks aan het eisen
+van bewijs.
+
+## Volgende kandidaat
+
+**`MAX_STEPS` verhogen** (nu 12), met `PAGE=10` én afdwinging aan: geeft het model genoeg ruimte om het hele
+protocol (beleid, alle pagina's, registertool, oordeel) af te maken zonder dat de paginering alleen al het budget
+opsoupeert — zonder de granulariteit van kleinere pagina's op te geven zoals `PAGE=30` wel doet.
+
+## Lopend: een groter model, met meer CPU
+
+Eerder zette qwen2.5:7b vast op de 900s-timeout, niet op geheugen (piekte op maar 5,6GB van de 12GB). Nu bekend is
+dat CPU, niet geheugen, de bottleneck was, en dat er ruim quota vrij is (ook al op het persoonlijke account: 32
+vCPU / 6GB vrij) — wordt de VM naar Large Instance (4 CPU/16GB) geschaald en qwen2.5:7b opnieuw, goedkoop, getest
+voor we er een volledige meting aan wagen.
