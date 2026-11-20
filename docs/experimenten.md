@@ -177,9 +177,28 @@ van bewijs.
 protocol (beleid, alle pagina's, registertool, oordeel) af te maken zonder dat de paginering alleen al het budget
 opsoupeert — zonder de granulariteit van kleinere pagina's op te geven zoals `PAGE=30` wel doet.
 
-## Lopend: een groter model, met meer CPU
+## Getest: lost meer CPU de qwen2.5:7b-timeout op?
 
-Eerder zette qwen2.5:7b vast op de 900s-timeout, niet op geheugen (piekte op maar 5,6GB van de 12GB). Nu bekend is
-dat CPU, niet geheugen, de bottleneck was, en dat er ruim quota vrij is (ook al op het persoonlijke account: 32
-vCPU / 6GB vrij) — wordt de VM naar Large Instance (4 CPU/16GB) geschaald en qwen2.5:7b opnieuw, goedkoop, getest
-voor we er een volledige meting aan wagen.
+**Actie (2026-11-20)**: de openllm-VM geresized van Medium Instance+ (2 CPU/12GB) naar Large Instance (4 CPU/16GB),
+in-place via Terraform (geen nieuwe VM, wel een nieuwe SSH-hostkey — verwacht bij een resize). Daarna een goedkope
+proef: qwen2.5:7b, 2 cases (grfics-001, -005), `direct` + `native`.
+
+**Uitkomst: de timeout is weg.** Alle 4 runs liepen af zonder fout (`error: null`) — eerder liep één aanroep al
+binnen 2 cases vast op de 900s-timeout, op 2 CPU's. Tijden nu: `direct` 133-143s, `native` 406-597s, ruim onder de
+limiet.
+
+| Case | Variant | Resultaat | invalid_calls |
+|---|---|---|---|
+| 001 | direct | correct (valid) | 0 |
+| 005 | direct | correct (valid) | 0 |
+| 001 | native | fout (`forbidden_function`, verzint dat fc 1/3/4 niet toegestaan zijn) | **0** |
+| 005 | native | geen oordeel (12 stappen op, 6x registertool) | **0** |
+
+**Opvallendste signaal (n=2, te klein voor een kwaliteitsconclusie): `invalid_calls: 0` in beide `native`-cases.**
+qwen2.5:3b had daar doorgaans 2-10 ongeldige pogingen per case nodig; 7b volgde het tool-protocol hier foutloos,
+ook waar het inhoudelijk mis zat of bleef doorzoeken. Dat wijst op betere instructie-opvolging bij een groter model,
+los van de vraag of het antwoord zelf juist is. Bestand:
+[results/proef-7b-4cpu-page2.jsonl](../results/proef-7b-4cpu-page2.jsonl) (2 cases, geen volledige meting).
+
+**Vervolg**: een iets grotere (nog steeds goedkope) proef — 6 cases op `native`, dezelfde opzet als de eerdere
+ablaties — voor we overwegen hier een volledige meting aan te wagen.
