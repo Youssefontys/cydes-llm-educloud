@@ -64,8 +64,32 @@ Interessant voor een latere kosten/kwaliteit-afweging, maar geen fix voor dit pr
 **Twee verdachten nu uitgesloten: `PAGE` en kwantisatie.** Overgebleven: de bewijs-afdwinging zelf, en de
 `num_predict`-cap.
 
+## Getest: hielp een confidence-veld?
+
+**Bron**: de eigen projectdocumentatie (`GRFICS v3 DUMP.docx`, secties 18/20.2/27) had "abstention accuracy" en "het
+LLM geeft onzekerheid aan" al voorzien als aandachtspunt, maar dat was nooit gebouwd. **Hypothese**: `submit_verdict`
+dwingt een vast label af zonder ruimte voor onzekerheid; als het model dat kon aangeven, zou een fout `valid`-oordeel
+vaker lage confidence moeten hebben dan een goed oordeel. Test (2026-11-20): optioneel `confidence`-veld
+(laag/midden/hoog) toegevoegd aan `submit_verdict`, zelfde 6 cases, `native`, PAGE 30, bewijs-afdwinging aan.
+
+**Uitkomst: weerlegd, niet bevestigd.** Opnieuw 3 van de 6 goed op recall — exact hetzelfde aantal als bij de PAGE-
+en kwantisatietest, alleen weer andere cases (nu grfics-001, -005, -012 i.p.v. -005, -013, -017). Drie verschillende
+ingrepen, drie keer dezelfde 3/6: dat wijst eerder op een plafond van dit model op deze cases dan op een knop die wij
+kunnen omzetten.
+
+Belangrijker: **`grfics-016` is fout (`valid` i.p.v. `forbidden_function`) mét `confidence: high`.** Dat weerlegt de
+hypothese direct — als het model domweg onzeker was en daarom voor `valid` koos, zou je lage confidence verwachten
+bij een fout `valid`-oordeel. Hier is het juist zelfverzekerd fout: een oprechte misinterpretatie van het bewijs, geen
+aarzeling die het verborg. Op twee andere cases (012, 013) vulde het model `reason` én `confidence` niet eens in,
+ondanks dat beide velden in het schema staan — dus ook onbetrouwbaar in het gebruiken van het veld zelf.
+
+**Drie verdachten nu uitgesloten: `PAGE`, kwantisatie, ontbrekend onzekerheidssignaal.** Het `confidence`-veld blijft
+wel in de code staan (goedkoop, optioneel, nu al gezien dat het soms waardevolle informatie geeft zoals bij
+grfics-016) — alleen de hypothese dat het de ingestorte recall zou verklaren, klopt niet.
+
 ## Volgende kandidaat
 
-**De bewijs-afdwinging zelf.** Twee andere verklaringen (`PAGE`, kwantisatie) zijn nu uitgesloten op deze zelfde 6
-cases. Test: dezelfde 6 cases, `native`, bewijs-afdwinging **uit** (terug naar de code van vóór 2026-11-19) — als de
-recall dan weer omhooggaat, is dat de boosdoener; blijft hij laag, dan ligt het ergens anders (bv. `num_predict`).
+**De bewijs-afdwinging zelf.** Drie andere verklaringen (`PAGE`, kwantisatie, confidence) zijn nu uitgesloten op
+deze zelfde 6 cases. Test: dezelfde 6 cases, `native`, bewijs-afdwinging **uit** (terug naar de code van vóór
+2026-11-19) — als de recall dan weer omhooggaat, is dat de boosdoener; blijft hij laag, dan ligt het ergens anders
+(bv. `num_predict`, of simpelweg de grens van wat dit model op deze cases kan).
