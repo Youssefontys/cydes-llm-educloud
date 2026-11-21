@@ -235,3 +235,116 @@ verdere ablaties hierop — we schakelen nu over naar het schrijven van het onde
 hele traject (PAGE, kwantisatie, confidence, llama3.2:3b, bewijs-afdwinging geïsoleerd, qwen2.5:7b, MAX_STEPS)
 staat hierboven vastgelegd als het antwoord op deelvraag 5: geen van de ingrepen gaf een doorbraak, en dat is zelf
 de bevinding over de betrouwbaarheid van deze aanpak op deze schaal.
+
+## Getest: MAX_STEPS 12 tegen 20, nu op dezelfde hardware
+
+**Test (2026-11-21)**: `MAX_STEPS=12`, qwen2.5:3b, `native`, dezelfde 6 cases, op de VM met 4 CPU's — verder exact
+gelijk aan de MAX_STEPS=20-run (PAGE 30, bewijs-afdwinging aan, `num_predict` 600, seed 1, context 4096, Ollama
+0.40.16, zelfde model-digest). De code in `bench/` is identiek aan commit `f41a24d` (de confidence-test). Bestand:
+[results/proef-maxsteps12-4cpu.jsonl](../results/proef-maxsteps12-4cpu.jsonl).
+
+| Case | Juist oordeel | 12 stappen | 20 stappen |
+|---|---|---|---|
+| grfics-001 | `valid` | geen oordeel (5 aanroepen, 1 ongeldig) | geen oordeel (5 aanroepen, 1 ongeldig) |
+| grfics-005 | `valid` | geen oordeel (12, waarvan 10 ongeldig) | geen oordeel (20, waarvan 18 ongeldig) |
+| grfics-012 | `unknown_client` | `valid` (7 / 3) | `valid` (7 / 3) |
+| grfics-013 | `forbidden_function` | `valid` (8 / 3) | `valid` (8 / 3) |
+| grfics-016 | `forbidden_function` | `valid` (5 / 1) | `valid` (5 / 1) |
+| grfics-017 | `illegal_address` | geen oordeel (12, waarvan 10 ongeldig) | geen oordeel (20, waarvan 18 ongeldig) |
+
+**Uitkomst: MAX_STEPS is geen knop voor qwen2.5:3b.** Elk oordeel is identiek. De vier cases die binnen het budget
+klaar waren, deden precies dezelfde aanroepen. De twee die tegen de limiet liepen, besteedden de 8 extra stappen
+volledig aan nog meer ongeldige aanroepen: het model zit dan vast in een lus, het komt geen stappen tekort. Dit
+sluit de open vraag uit de vorige sectie af.
+
+**Bijvangst, en belangrijker: hardware verandert de uitkomst bij temperatuur 0.** Dezelfde code, hetzelfde model,
+dezelfde instellingen en dezelfde 6 cases als de confidence-test van 2026-11-20 — die haalde op 2 CPU's 3 van de 6
+goed (grfics-001, -005, -012). Nu, op 4 CPU's: 0 van de 6, en geen enkele overtreding gemeld. Het enige verschil is
+de VM (2 → 4 CPU's, 12 → 16 GB). Op dezelfde machine is het model deterministisch (17-11 en 18-11: 100 van de 100
+oordelen identiek); tussen machines dus niet. Vermoedelijke oorzaak, niet bewezen: met een ander aantal threads
+telt llama.cpp in een andere volgorde op, waardoor bij een twijfelgeval een ander eerste token wint. Beperking:
+de ruwe data van de confidence-test zijn niet bewaard, alleen deze log.
+
+Gevolgen:
+
+- De eerdere 0/6 van qwen2.5:7b en van MAX_STEPS=20 zijn **niet** slechter dan qwen2.5:3b: op dezelfde 4-CPU-VM
+  haalt qwen2.5:3b ook 0 van de 6. De vergelijking "7b 0/6 tegen 3b 3/6" ging over verschillende hardware.
+- Vergelijk modellen en instellingen alleen op dezelfde hardware. **Basislijn voor alles wat nu volgt:**
+  `results/proef-maxsteps12-4cpu.jsonl` (qwen2.5:3b, 4 CPU's: 0/6 juist, 0/4 overtredingen gemeld, 3 geen oordeel).
+- Dat 6 cases zo hard kunnen omslaan door alleen hardware, bevestigt dat de uitkomsten op deze schaal fragiel zijn.
+
+## Plan: nieuwere kleine modellen
+
+**Aanleiding**: alle geteste modellen komen uit 2024. Een meting van No Hype Bench (YouTube, 4 okt 2026: "Local LLM
+2026: 6 New Small Models vs Last Year's Champion") op vergelijkbare hardware (8 vCPU Xeon, 15 GB, geen GPU, Ollama,
+temperatuur 0, beoordeeld door code) liet zien dat nieuwere kleine modellen het beter doen op gestructureerde taken
+(JSON-extractie, strikte opmaak). Tool calling is daar **niet** getest. Alle modellen staan in de Ollama Library en
+passen in de VM (16 GB, 31 GB vrije schijf). Gecontroleerd op 2026-11-21.
+
+**Opzet per model**: precies de basislijn hierboven — `native`, dezelfde 6 cases, 4 CPU's, PAGE 30,
+bewijs-afdwinging aan, MAX_STEPS 12, `num_predict` 600, seed 1. Eerst één losse tool-aanroep met een
+integer-argument controleren (daar faalde llama3.2:3b), pas dan de 6 cases.
+
+**Ronde 1, in deze volgorde:**
+
+1. `phi4-mini:3.8b-q4_K_M` (2,5 GB) — "tools"-label, denkt niet. Geen codewijziging nodig.
+2. `qwen3.5:4b-q4_K_M` (3,3 GB) — de directe opvolger van qwen2.5:3b, dus de eerlijkste vergelijking. Denkt: zet
+   `think` expliciet in het verzoek (een codewijziging, hier vastleggen), anders is het geen eerlijke vergelijking
+   en kan het denkwerk de cap van 600 tokens opeten.
+3. `lfm2.5:8b` (8b-a1b, Q4_K_M, 5,2 GB) — volgens de beschrijving gebouwd voor tool calling, MoE met 1,5B actief
+   (snel op CPU). Denkt altijd: let op de cap van 600 tokens.
+
+**Ronde 2, alleen als een model uit ronde 1 de basislijn verslaat** (meer juiste oordelen of meer gemelde
+overtredingen op de 6 cases):
+
+4. `qwen3.5:9b-q4_K_M` (6,6 GB) — past, maar wordt traag op 4 CPU's (een proef kan uren duren; let op de
+   timeout van 900 s per aanroep).
+5. `gemma4:e2b-it-qat` (4,3 GB) — **niet** de standaardtag: die bevat een draft-model voor speculative decoding en
+   was in de video juist het traagst op een CPU.
+6. `qwen3.5:2b-q4_K_M` (1,9 GB) — kleiner dan het huidige model en scoorde lager in de video; lage prioriteit.
+7. `granite4.2:3b` (2,2 GB) — de beschrijving noemt tool use, maar het "tools"-label ontbreekt in de Library.
+   Alleen testen na een losse tool-check; anders `granite4.1:3b` (heeft het label wel).
+
+**Beslisregel**: verslaat geen enkel model uit ronde 1 de basislijn, dan stopt het modelspoor. Dan is niet de
+modelgeneratie de grens, maar de taak of de opzet — en dat is zelf de bevinding.
+
+## Getest: Phi-4 mini (ronde 1, model 1)
+
+**Losse tool-check (2026-11-21)**: via `native` (Ollama's eigen tool-calling) roept `phi4-mini:3.8b-q4_K_M`
+**geen** tool aan, ook al staat het "tools"-label in de Library en meldt `ollama show` de capability `tools`: het
+model schrijft het tool-schema terug als gewone tekst. Via `manual` (tools als tekst, antwoord als JSON) gaat het
+wél goed: juiste toolnamen, `start` als getal. Daarom wijkt deze proef af van het plan: `manual` in plaats van
+`native`, met qwen2.5:3b op `manual` ernaast als basislijn, op dezelfde 4-CPU-VM.
+
+**Test**: `manual`, qwen2.5:3b en phi4-mini, dezelfde 6 cases, 4 CPU's, PAGE 30, bewijs-afdwinging aan,
+MAX_STEPS 12, `num_predict` 600, seed 1. Bestand:
+[results/proef-phi4mini-manual-4cpu.jsonl](../results/proef-phi4mini-manual-4cpu.jsonl).
+
+| Model | Juist | Overtreding gemeld | Geen oordeel | Tijd (6 cases) | Tokens/s |
+|---|---|---|---|---|---|
+| qwen2.5:3b | 2/6 (001, 005) | 1/4 (016, verkeerde regel) | 0 | 9 min | 6,3 |
+| phi4-mini | 0/6 | 0/4 | 6 (3x stappen op, 3x Ollama-fout) | 97 min | 3,6 |
+
+**Uitkomst: Phi-4 mini verslaat de basislijn niet, integendeel.** In 001, 005 en 012 haalde het wel netjes het
+beleid, alle transacties en de registers op, maar kwam het daarna niet tot een geldig `submit_verdict`: 5, 7 en 12
+ongeldige aanroepen tot het budget op was. Het schreef veel meer tekst (ruim 3.000 tokens in één case, tegen 118
+bij qwen2.5:3b) en was per token ook trager. Het gesprek liep in de Ollama-log op tot 3.988 van de 4.096 tokens,
+maar werd niet afgekapt (`truncated = 0`): het vermoeden dat de instructies uit het contextvenster vielen, klopt
+dus niet. In 013, 016 en 017 gaf Ollama een interne fout (HTTP 500). Dezelfde eerste aanroep los herhaald ging
+wel goed, dus het is een fout die af en toe optreedt, geen vaste.
+
+**Twee bijvangsten**:
+
+- Het "tools"-label in de Library (en zelfs de capability in `ollama show`) zegt niet dat native tool calling
+  werkt. Na llama3.2:3b is dit het tweede model waarbij dat label misleidt.
+- **Meetgat in de benchmark**: als een run halverwege op een fout stuit, schrijft `bench/run.py` 0 aanroepen en
+  0 tokens weg (de tellingen gaan verloren; zie de nieuwe `runners.Stats()` bij de fout). grfics-017 liep 30
+  minuten maar staat met 0 aanroepen in het bestand. Op te lossen door de `Stats` vanuit `run.py` aan
+  `run_case` mee te geven.
+
+**Basislijn op manual (bijvangst, nieuw)**: qwen2.5:3b haalt op dezelfde 4-CPU-VM via `manual` 2/6 juist, via
+`native` 0/6. Op deze 6 cases doet `manual` het dus beter dan `native`, net als manual in de eerste volledige
+meting een hogere recall had dan native (67% tegen 56%).
+
+**Volgende stap volgens het plan**: `qwen3.5:4b-q4_K_M`. Vooraf twee codewijzigingen: `think` expliciet in het
+verzoek (anders geen eerlijke vergelijking), en het meetgat hierboven dichten.
