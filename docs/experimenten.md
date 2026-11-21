@@ -218,8 +218,20 @@ model grondig probeert te zijn. 7b is dus niet "beter" gebleken — het faalt al
 tegen 2-10 bij 3b), zonder dat vaker tot een goed oordeel te komen. De eerdere winst (geen timeouts meer dankzij
 4 CPU's) staat los hiervan en blijft overeind.
 
-## Volgende, nu dubbel onderbouwde kandidaat
+## Getest: helpt MAX_STEPS verhogen?
 
-**`MAX_STEPS` verhogen** (nu 12, bv. naar 18-20) — relevant voor zowel qwen2.5:3b (PAGE=10, te veel paginering) als
-qwen2.5:7b (te veel herverificatie). Dit is geen nieuw zijspoor meer, maar de samenvoeging van twee onafhankelijke
-bevindingen tot één gerichte test.
+**Test (2026-11-20/21)**: `MAX_STEPS` van 12 naar 20, qwen2.5:3b, dezelfde 6 cases, `native`, op de inmiddels
+geresizde VM (4 CPU).
+
+**Uitkomst: niet beter — 0 van de 6 goed, en niet eenduidig toe te schrijven.** Twee dingen door elkaar: de snelheid
+verdubbelde (6,2 tok/s tegen 3,4-3,8 eerder) puur door de VM-resize, dus dit is geen schone vergelijking met de
+eerdere MAX_STEPS=12-cijfers op 2 CPU. Eén case (`grfics-001`) stopte na maar 5 van de 20 stappen met `geen
+oordeel` — bij nader inzien geen stappen-uitputting, maar een verdict-string die niet exact in onze vaste lijst
+paste (opgevangen als `None`, niet als een geldig maar onherkend antwoord). Dat is zelf een kleine, aparte
+bevinding: onze validatie kan een bedoeld antwoord soms ten onrechte als "geen oordeel" tellen.
+
+**Besluit**: `MAX_STEPS` teruggezet naar 12 (de staat waarin alle drie de volledige metingen zijn gedaan). Geen
+verdere ablaties hierop — we schakelen nu over naar het schrijven van het onderzoeksrapport met wat er is. Dit
+hele traject (PAGE, kwantisatie, confidence, llama3.2:3b, bewijs-afdwinging geïsoleerd, qwen2.5:7b, MAX_STEPS)
+staat hierboven vastgelegd als het antwoord op deelvraag 5: geen van de ingrepen gaf een doorbraak, en dat is zelf
+de bevinding over de betrouwbaarheid van deze aanpak op deze schaal.
