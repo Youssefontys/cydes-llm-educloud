@@ -176,6 +176,11 @@ python -m bench.report results/results.jsonl
 Voor een korte proef: `--only grfics-001,grfics-012` draait alleen die cases, `--variants direct,native` alleen die
 varianten.
 
+Voor modellen die kunnen "denken" (zoals qwen3.5 en lfm2.5): `--think off` of `--think on` zet dat expliciet; zonder
+de optie wordt niets meegestuurd. De keuze staat in de metadata van het resultaatbestand. Vergelijk alleen metingen
+die op dezelfde VM-grootte zijn gedaan: bij temperatuur 0 kan alleen al een ander aantal CPU's de oordelen veranderen
+(zie [docs/experimenten.md](docs/experimenten.md)).
+
 ## Wat erin zit
 
 | Bestand | Wat |

@@ -348,3 +348,15 @@ meting een hogere recall had dan native (67% tegen 56%).
 
 **Volgende stap volgens het plan**: `qwen3.5:4b-q4_K_M`. Vooraf twee codewijzigingen: `think` expliciet in het
 verzoek (anders geen eerlijke vergelijking), en het meetgat hierboven dichten.
+
+## Codewijziging: `--think` en tellingen bij een fout (2026-11-21)
+
+- `bench.run --think on|off` stuurt `think` mee naar Ollama (naast `options`, niet erin). Zonder de optie wordt
+  niets meegestuurd, dus eerdere runs en qwen2.5:3b veranderen niet. De keuze staat als `think` in de metadata.
+- `run.py` geeft zijn `Stats` mee aan `run_case`: een run die halverwege op een fout stuit, bewaart nu het aantal
+  aanroepen en tokens tot aan de fout, in plaats van 0. Resultaatbestanden van vóór deze wijziging (o.a. de
+  Phi-4 mini-proef) hebben bij foutregels dus 0 aanroepen staan, ook als er wel gerekend is.
+- De bestaande tests slagen (20, waarvan 1 overgeslagen), plus een losse controle met een nep-Ollama op beide punten.
+
+Qwen3.5 draait met `--think off`: denken is een andere werkwijze dan die van qwen2.5:3b, en het denkwerk zou de cap
+van 600 tokens opeten. Denken aan is een aparte vraag voor later, niet deze vergelijking.

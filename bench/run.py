@@ -110,7 +110,7 @@ def environment(models, args, dataset):
                            "quantization": ((tags.get(m) or {}).get("details") or {}).get("quantization_level")} for m in models},
             "dataset": dataset.name, "dataset_fingerprint": dataset.fingerprint, "source": dataset.source, "cases": len(dataset.cases),
             "num_ctx": args.num_ctx, "max_output_tokens": args.max_output_tokens, "temperature": 0, "seed": args.seed,
-            "max_steps": runners.MAX_STEPS}
+            "max_steps": runners.MAX_STEPS, "think": args.think}
 
 
 def main(argv=None):
@@ -126,6 +126,9 @@ def main(argv=None):
     parser.add_argument("--max-output-tokens", type=int, default=600,
                         help="cap op de lengte van één antwoord (standaard 600); voorkomt dat een doorratelend model "
                              "de timeout van ollama() raakt")
+    parser.add_argument("--think", choices=("on", "off"),
+                        help="alleen voor modellen die kunnen denken: denken aan of uit; zonder deze optie wordt niets "
+                             "meegestuurd en doet het model wat het standaard doet")
     parser.add_argument("--out", default="results/results.jsonl", help="het JSONL-bestand met de uitkomsten")
     args = parser.parse_args(argv)
     models = [m.strip() for m in args.models.split(",") if m.strip()]
@@ -172,6 +175,8 @@ def main(argv=None):
         bridge = McpBridge(dataset)
 
     options = {"temperature": 0, "seed": args.seed, "num_ctx": args.num_ctx, "num_predict": args.max_output_tokens}
+    if args.think:
+        options["think"] = args.think == "on"
     total = len(models) * len(variants) * len(dataset.cases) * args.repeats
     print(f"{total} runs op de dataset {dataset.name} ({len(dataset.cases)} cases), waarvan {len(done)} al gedaan; uitkomsten in {out}")
     with out.open("a", encoding="utf-8") as f:
@@ -189,7 +194,7 @@ def main(argv=None):
                             started, error, verdict, reason, confidence, stats = time.monotonic(), None, None, None, None, runners.Stats()
                             with ProcessMeter(is_ollama) as llm, ProcessMeter(is_mcp_server) as server:
                                 try:
-                                    verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case, options, bridge)
+                                    verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case, options, bridge, stats)
                                 except Exception as problem:  # één mislukte run mag de rest niet stoppen
                                     error = f"{type(problem).__name__}: {problem}"[:300]
                             wall = time.monotonic() - started

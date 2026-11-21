@@ -85,7 +85,10 @@ def _missing_evidence(stats):
 
 
 def chat(model, messages, stats, options, tools=None, json_mode=False):
-    body = {"model": model, "messages": messages, "stream": False, "options": options}
+    # think hoort bij Ollama naast options, niet erin.
+    body = {"model": model, "messages": messages, "stream": False, "options": {k: v for k, v in options.items() if k != "think"}}
+    if "think" in options:
+        body["think"] = options["think"]
     if tools:
         body["tools"] = tools
     if json_mode:
@@ -218,9 +221,11 @@ def native_loop(model, toolbox, final, stats, options, system, user):
     return None
 
 
-def run_case(variant, model, dataset, case, options, mcp_bridge=None):
-    """Eén case in één variant. Geeft het oordeel van het model (of None) en wat het kostte."""
-    stats, submit = Stats(), dataset.submit()
+def run_case(variant, model, dataset, case, options, mcp_bridge=None, stats=None):
+    """Eén case in één variant. Geeft het oordeel van het model (of None) en wat het kostte. Geef stats mee om de
+    tellingen ook te houden als de run halverwege op een fout stuit."""
+    stats = Stats() if stats is None else stats
+    submit = dataset.submit()
     user = f"Validate {case['id']}."
     if variant == "direct":
         answer = direct(model, dataset, case, stats, options)
