@@ -460,3 +460,32 @@ en de volledige meting van Qwen3.5 4B 's nachts.
 `/v1/systemone` ondersteunt die niet. Het bewijs is 1.600 tot 2.000 tokens per case (geschat), ruim binnen elk
 contextvenster. Nieuwe test met een nep-decision-model; alle 21 tests slagen (1 overgeslagen). Nog niet tegen een
 echt decision model gedraaid: dat volgt na LFM2.5, om die proef niet te storen.
+
+## Getest: LFM2.5-8B-A1B (ronde 1, model 3)
+
+**Losse tool-check (2026-11-23)**: `ollama show lfm2.5:8b` meldt `thinking` met als enige stand `false`. Toch schrijft
+het model zijn redenering als `<think>...`-tekst in het antwoord, ook met `--think off`: denken valt hier niet uit te
+zetten. Twee losse `native`-aanroepen gaven wel nette tool-aanroepen met `start` als getal.
+
+**Test**: `native` en `manual`, `--think off`, dezelfde 6 cases, 4 CPU's, PAGE 30, bewijs-afdwinging aan, MAX_STEPS
+12, `num_predict` 600, seed 1. Bestand: [results/proef-lfm2.5-8b-4cpu.jsonl](../results/proef-lfm2.5-8b-4cpu.jsonl).
+
+| Variant | Juist | Overtreding gemeld | Geen oordeel | Tijd (6 cases) |
+|---|---|---|---|---|
+| native | 0/6 | 0/4 | 6 (alle 12 stappen op, 9-10 ongeldig per case) | 78 min |
+| manual | 0/6 | 0/4 | 6 (12 van de 12 aanroepen ongeldig) | 3 min |
+
+**Uitkomst: 0 van de 12, de basislijn niet verslagen.** Twee verschillende manieren van falen, losse controle
+achteraf:
+
+- `manual` gebruikt de JSON-modus van Ollama. Daarin slaat LFM2.5 het denken over, maar geeft het telkens een verkeerd
+  gevormd antwoord: `{"start": 0, "end": 30}`, zonder toolnaam. Twaalf keer dezelfde fout.
+- Zonder JSON-modus denkt het hardop en raakt het al bij de eerste aanroep de cap van 600 tokens, voordat er een
+  tool-aanroep komt. In `native` schreef het per case 4.000 tot 6.000 tokens (gemiddeld 450-510 per aanroep).
+
+Een hogere cap zou het model meer ruimte geven, maar dat is een andere instelling dan bij de andere modellen, en het
+maakt elke case nog trager. Niet getest; hooguit een losse vervolgvraag.
+
+**Stand van ronde 1**: Phi-4 mini 0/6 (manual), Qwen3.5 4B 4/6 manual en 2/6 native, LFM2.5 0/12. Alleen Qwen3.5 4B
+verslaat de basislijn, en daarmee is ronde 2 open. Van de drie nieuwere modellen werkte er één goed met onze
+aanroepvorm; bij de andere twee lag het probleem bij het aanroepen zelf, niet bij het oordeel.
