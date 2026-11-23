@@ -489,3 +489,45 @@ maakt elke case nog trager. Niet getest; hooguit een losse vervolgvraag.
 **Stand van ronde 1**: Phi-4 mini 0/6 (manual), Qwen3.5 4B 4/6 manual en 2/6 native, LFM2.5 0/12. Alleen Qwen3.5 4B
 verslaat de basislijn, en daarmee is ronde 2 open. Van de drie nieuwere modellen werkte er één goed met onze
 aanroepvorm; bij de andere twee lag het probleem bij het aanroepen zelf, niet bij het oordeel.
+
+## Getest: lokale decision models (d1, tev1) tegen `direct`
+
+**Kandidaten bijgesteld (2026-11-23)**: `pplx-decider-flash` valt af: al zijn tags zijn MLX-builds (de standaardtag
+heeft dezelfde digest als `4b-mxfp8`), en Ollama weigert ze op onze Linux-VM ("requires MLX support"). Wel op CPU te
+draaien: `d1:3b` (Liquid AI, q8_0, 3,7 GB) en `tev1:4b-q4_K_M` (Together AI, 2,8 GB). Om ruimte te maken zijn vier
+afgeronde modellen van de VM verwijderd (lfm2.5, phi4-mini, llama3.2, qwen2.5-q8); opnieuw op te halen.
+
+**Test**: `decide` voor d1 en tev1; `direct` voor qwen2.5:3b en voor Qwen3.5 4B (`--think off`) als basislijn.
+Dezelfde 6 cases, 4 CPU's, seed 1, `num_predict` 600 voor de generatieve modellen. Bestanden:
+[proef-decide-4cpu.jsonl](../results/proef-decide-4cpu.jsonl),
+[proef-direct-qwen2.5-3b-4cpu.jsonl](../results/proef-direct-qwen2.5-3b-4cpu.jsonl),
+[proef-direct-qwen3.5-4b-4cpu.jsonl](../results/proef-direct-qwen3.5-4b-4cpu.jsonl).
+
+| Model | Variant | Juist | Overtreding gemeld | Vals alarm | Tijd (6 cases) |
+|---|---|---|---|---|---|
+| qwen2.5:3b | `direct` | 1/6 | 4/4 (1 juiste regel) | 2/2 | 7,0 min |
+| **qwen3.5:4b** | `direct` | **4/6** (001, 005, 013, 016) | 2/4 (beide juiste regel) | 0/2 | 8,8 min |
+| d1:3b | `decide` | 1/6 | 3/4 (1 juiste regel) | 2/2 | 7,6 min |
+| tev1:4b | `decide` | 2/6 | 0/4 | 0/2 | 7,8 min |
+
+**Uitkomst: het spoor slaagt niet.** Volgens de beslisregel moest een decision model meer juiste oordelen halen dan
+beide `direct`-basislijnen; tev1 haalt 2/6 en d1 1/6, tegen 4/6 voor Qwen3.5 4B. De vervolgstappen die alleen bij
+succes zouden volgen (vier losse ja/nee-vragen, de 9B-kandidaten, decision model als verificatie-agent) vervallen.
+
+**Wat het wel liet zien**:
+
+- **d1 weet dat het het niet weet.** Het verdeelt de kans bijna gelijk over de labels (de gekozen optie 0,29-0,38,
+  confidence 0,11-0,22), maar die lage zekerheid zegt niets over goed of fout: de ene juiste case had dezelfde
+  zekerheid als de foute.
+- **tev1 zegt steeds `valid`, maar minder stellig bij echte overtredingen.** De kans op `valid` was 0,56-0,59 bij de
+  twee echte valid-cases en 0,46-0,51 bij de vier overtredingen; de confidence 0,45-0,49 tegen 0,32-0,39. Op deze 6
+  cases scheidt een drempel de twee groepen volledig. Met zes cases is dat geen bewijs, maar wel precies het
+  signaal dat het confidence-veld van qwen2.5:3b niet gaf: bruikbaar als filter ("alleen een stellig `valid`
+  vertrouwen, de rest naar een mens"), niet als eindoordeel.
+- **Niet sneller op onze CPU.** Zo'n 75-85 seconden per case, net zo lang als `direct` met een generatief model.
+  Het bewijs is ongeveer 3.400 tokens (eerder te laag geschat), en het inlezen daarvan kost op een CPU de meeste
+  tijd; het genereren van een kort antwoord weinig. De claim "40 tot 200 keer sneller" gaat over gehoste hardware en
+  korte invoer, niet over deze opzet.
+- **Bijvangst: Qwen3.5 4B haalt via `direct` hetzelfde als via `manual`** (4/6, dezelfde cases), met één aanroep per
+  case en zonder tools. Voor dit model voegen de tools op deze 6 cases dus niets toe. qwen2.5:3b via `direct`
+  confabuleert nog steeds: zes keer `illegal_address`, net als in de eerste meting van 17-11.
