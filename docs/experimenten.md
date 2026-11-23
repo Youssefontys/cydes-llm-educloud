@@ -531,3 +531,34 @@ succes zouden volgen (vier losse ja/nee-vragen, de 9B-kandidaten, decision model
 - **Bijvangst: Qwen3.5 4B haalt via `direct` hetzelfde als via `manual`** (4/6, dezelfde cases), met één aanroep per
   case en zonder tools. Voor dit model voegen de tools op deze 6 cases dus niets toe. qwen2.5:3b via `direct`
   confabuleert nog steeds: zes keer `illegal_address`, net als in de eerste meting van 17-11.
+
+## Plan: het beste model per variant (toegevoegd 2026-11-23)
+
+**Aanleiding**: de proeven laten zien dat een model per variant heel anders kan uitpakken. Phi-4 mini werkte alleen
+via `manual`; LFM2.5 kon via `native` tools aanroepen maar liep op het denken vast; qwen2.5:3b deed het op dezelfde
+VM via `manual` beter dan via `native`. Eén model in alle varianten beantwoordt de vraag welke **architectuur** het
+best is (één variabele per keer). Het beste model per variant beantwoordt een andere vraag, die voor de hoofdvraag
+("in hoeverre bruikbaar") telt: hoe ver kom je **per architectuur maximaal** op deze hardware?
+
+**Opzet, in deze volgorde**:
+
+1. **Architectuurvergelijking**: de volledige metingen van Qwen3.5 4B en qwen2.5:3b, alle vijf varianten op alle 20
+   cases, op de 4-CPU-VM (loopt, `keten2.sh`).
+2. **Winnaar per variant kiezen**, op dezelfde 6 cases en dezelfde VM:
+   - `native` en `manual`: uit ronde 1 en ronde 2 (alle modellen hebben die al gedraaid).
+   - `direct`: nu alleen qwen2.5:3b en Qwen3.5 4B gemeten. De vier modellen van ronde 2 krijgen nog een korte
+     `direct`-proef (goedkoop: één aanroep per case).
+   - `mcp`: dezelfde tool-aanroepen als `native`, dus de `native`-winnaar.
+   - `multi`: twee keer de `native`-lus, dus kandidaten zijn de `native`-winnaars.
+   - Keuzeregel: meeste juiste oordelen; bij gelijkspel meer overtredingen met de juiste regel, dan minder vals
+     alarm, dan minder tijd.
+3. **Volledige meting van elke winnaar** op alle 20 cases in zijn eigen variant, alleen als die nog niet in stap 1
+   zit. Geen complete matrix van alle modellen maal alle varianten: dat zou dagen rekentijd kosten.
+
+**Uitbreiding voor `multi`, apart**: de analist en de reviewer hoeven niet hetzelfde model te zijn, bijvoorbeeld een
+snel klein model dat het bewijs verzamelt en een sterker model dat beoordeelt. De benchmark kan dat nog niet; het
+vraagt een kleine codewijziging (een apart model voor de reviewer). Pas oppakken na stap 2, met de winnaars als
+kandidaten.
+
+**Wat het oplevert**: per architectuur het beste haalbare resultaat op deze hardware, naast de schone vergelijking
+met één model. Samen laten ze zien of een architectuur slecht is, of alleen slecht werkt met het verkeerde model.
