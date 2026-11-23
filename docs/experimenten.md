@@ -562,3 +562,41 @@ kandidaten.
 
 **Wat het oplevert**: per architectuur het beste haalbare resultaat op deze hardware, naast de schone vergelijking
 met één model. Samen laten ze zien of een architectuur slecht is, of alleen slecht werkt met het verkeerde model.
+
+## Naar aanleiding van externe feedback (2026-11-23)
+
+Een review door Gemini op basis van de README leverde, naast punten die hierboven al zijn uitgezocht (de drie
+wijzigingen van 19-11 uit elkaar trekken, een groter model proberen), drie bruikbare punten op. Uitgewerkt met de
+bestaande data, zonder nieuwe runs:
+
+**1. CPU-seconden per juist oordeel** als maat voor efficiëntie, in plaats van losse tijden. Uit de twee volledige
+metingen van qwen2.5:3b (2 CPU's, 20 cases):
+
+| Variant | 17-11: juist | 17-11: CPU-s per juist | 19-11: juist | 19-11: CPU-s per juist |
+|---|---|---|---|---|
+| direct | 3/20 | 1.674 | 3/20 | 1.693 |
+| manual | 7/20 | **574** | 11/20 | **640** |
+| native | 9/20 | 1.545 | 9/20 | 2.959 |
+| mcp | 7/20 | 2.150 | 7/20 | 5.461 |
+| multi | 9/20 | 2.205 | 9/20 | 4.603 |
+
+`manual` is in beide metingen veruit het goedkoopst per juist oordeel; `mcp` en `multi` kosten drie tot acht keer
+zoveel. Kanttekening: 'juist' telt ook terecht gegeven `valid`-oordelen mee (11 van de 20 cases zijn valid), dus
+dit is een maat voor de kost van een correct oordeel in het algemeen, niet van een gevonden overtreding.
+
+**2. De antwoordlimiet (`num_predict` 600) is nooit apart getest.** Meestal maakt dat niet uit: qwen2.5:3b schrijft
+gemiddeld 132 tokens per antwoord, Qwen3.5 4B 87. Maar in de meting van 19-11 liepen in 5 van de 100 runs de
+antwoorden op tot gemiddeld 300-500 tokens, en dat waren **allemaal `mcp`-runs** (grfics-003, -005, -007, -015,
+-017). Drie daarvan eindigden zonder oordeel. De limiet heeft dus vermoedelijk meegespeeld in de 6 keer "geen
+oordeel" van `mcp` op 19-11 (tegen 2 op 17-11). Niet geïsoleerd; een losse test (`mcp`, die vijf cases, zonder cap)
+zou het kunnen bevestigen.
+
+**3. De taak is mechanisch te controleren.** Om `unknown_client`, `forbidden_function` of `illegal_address` te
+vinden, moet het model per transactie client, server, function code en register vergelijken met het beleid en de
+registermap. `check()` doet dat foutloos in een paar regels code. Een taalmodel is daar op deze schaal slordiger en
+veel duurder in. Dat is geen fout in de opzet (de taak is juist gekozen omdat het juiste antwoord mechanisch vast
+te stellen is), maar wel een discussiepunt: een LLM voegt vooral iets toe waar regels vaag zijn of context
+vragen, niet bij exacte vergelijkingen.
+
+Niet overgenomen: `unauthorized_write` nu aan de dataset toevoegen. Dan zijn alle metingen tot nu toe, inclusief de
+volledige metingen die nu lopen, niet meer vergelijkbaar. Dat hoort bij een volgende datasetversie.
