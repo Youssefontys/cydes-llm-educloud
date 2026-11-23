@@ -360,3 +360,39 @@ verzoek (anders geen eerlijke vergelijking), en het meetgat hierboven dichten.
 
 Qwen3.5 draait met `--think off`: denken is een andere werkwijze dan die van qwen2.5:3b, en het denkwerk zou de cap
 van 600 tokens opeten. Denken aan is een aparte vraag voor later, niet deze vergelijking.
+
+## Getest: Qwen3.5 4B (ronde 1, model 2)
+
+**Losse tool-check (2026-11-21)**: `ollama show` meldt dat `qwen3.5:4b-q4_K_M` standaard denkt (`thinking`,
+`default true`): zonder `--think off` was de vergelijking ongemerkt oneerlijk geweest. Met denken uit gaf het via
+`native` echte tool-aanroepen met `start` als getal (0 en 30), zonder denkwerk. Anders dan Phi-4 mini werkt native
+tool calling hier dus wel.
+
+**Test**: `native` en `manual`, `--think off`, dezelfde 6 cases, 4 CPU's, PAGE 30, bewijs-afdwinging aan,
+MAX_STEPS 12, `num_predict` 600, seed 1. Bestand: [results/proef-qwen3.5-4b-4cpu.jsonl](../results/proef-qwen3.5-4b-4cpu.jsonl). Vergeleken met de
+basislijnen van qwen2.5:3b op dezelfde VM (`proef-maxsteps12-4cpu.jsonl` voor native,
+`proef-phi4mini-manual-4cpu.jsonl` voor manual).
+
+| Variant | Model | Juist | Overtreding gemeld | Geen oordeel | Tijd (6 cases) |
+|---|---|---|---|---|---|
+| native | qwen2.5:3b | 0/6 | 0/4 | 3 | 50 min |
+| native | **qwen3.5:4b** | **2/6** (001, 016) | 1/4, juiste regel | 4 | 64 min |
+| manual | qwen2.5:3b | 2/6 (001, 005) | 1/4, verkeerde regel | 0 | 9 min |
+| manual | **qwen3.5:4b** | **4/6** (001, 005, 013, 016) | 2/4, beide juiste regel | 0 | 12 min |
+
+**Uitkomst: Qwen3.5 4B verslaat de basislijn op beide varianten.** Het is de eerste ingreep in dit hele traject die
+dat doet. Via `manual` gaf het in elke case een oordeel, zonder één ongeldige aanroep, in zo'n 2 minuten per case;
+`forbidden_function` werd twee keer met de juiste regel gevonden. Gemist: `unknown_client` (012) en
+`illegal_address` (017), beide als `valid`. Via `native` liep het in 4 van de 6 cases nog vast op het
+stappenbudget (3 tot 8 ongeldige aanroepen), maar ook daar haalde het een overtreding met de juiste regel.
+
+**Kanttekening**: zes cases is een signaal, geen bewijs. Twee cases verschil kan op deze schaal ook toeval of
+hardware-afhankelijkheid zijn (zie de MAX_STEPS-sectie).
+
+**Gevolgen volgens het plan**:
+
+- De beslisregel is gehaald: ronde 2 gaat open (Qwen3.5 9B, Gemma 4 E2B, Qwen3.5 2B, Granite 4.2 3B), na het
+  laatste model van ronde 1, LFM2.5.
+- Volgens het principe "eerst klein, alleen wat overtuigend beter lijkt krijgt een volledige meting" verdient
+  Qwen3.5 4B een meting op alle 20 cases. Die moet naast een nieuwe meting van qwen2.5:3b op dezelfde 4-CPU-VM,
+  omdat de volledige metingen van 17/18/19-11 op 2 CPU's zijn gedaan.
