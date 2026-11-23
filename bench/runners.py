@@ -9,6 +9,8 @@
   mcp      als native, maar de tools komen van een MCP-server en worden daar uitgevoerd (deelvraag 2, variant B).
   multi    twee agents: een analist die het verkeer bekijkt en bevindingen doorgeeft, en een reviewer die ze
            controleert en het oordeel geeft (deelvraag 3, variant C). Zonder framework: twee keer dezelfde lus.
+  decide   een decision model (Ollama's /v1/systemone): hetzelfde bewijs als direct, één keuzevraag met de labels,
+           een kans per label terug. Geen tekst en geen tools; alleen voor modellen met de capability "decision".
 
 Alleen de standaardbibliotheek, behalve mcp voor de variant mcp."""
 import json
@@ -22,7 +24,8 @@ OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 MAX_STEPS = 12
 TASK = ("You validate Modbus/TCP traffic against a security policy. Read the policy, read ALL transactions of the case "
         "(page through them until you have seen the total), and decide whether the traffic is valid or which single rule it breaks.")
-VARIANTS = ("direct", "manual", "native", "mcp", "multi")
+VARIANTS = ("direct", "manual", "native", "mcp", "multi", "decide")
+GENERATIVE = VARIANTS[:5]
 
 
 def ollama(path, body=None, timeout=900):
@@ -162,6 +165,27 @@ def direct(model, dataset, case, stats, options):
     return reply
 
 
+def decide(model, dataset, case, stats):
+    """Een decision model: het bewijs als toestand, de labels als opties, per label een kans. Temperatuur en seed
+    stuurt /v1/systemone niet; één forward pass is al deterministisch."""
+    rules = {"valid": "No rule is broken.", **dataset.policy()["rules"]}
+    question = {"type": "choice",
+                "instructions": "Does this Modbus/TCP traffic follow the security policy? Choose 'valid' if no rule is broken, "
+                                "otherwise the one rule that is broken.",
+                "criteria": {v: rules[v] for v in dataset.verdicts}}
+    started = time.monotonic()
+    response = ollama("/v1/systemone", {"model": model, "state": dataset.evidence(case), "questions": {"verdict": question}})
+    stats["llm_calls"] += 1
+    stats["llm_seconds"] += time.monotonic() - started
+    usage = response.get("usage") or {}
+    stats["prompt_tokens"] += usage.get("input_tokens") or 0
+    stats["output_tokens"] += usage.get("output_tokens") or 0
+    answer = (response.get("answers") or {}).get("verdict") or {}
+    stats["probabilities"] = answer.get("probabilities")
+    stats["decision_confidence"] = answer.get("confidence")
+    return {"verdict": answer.get("choice")}
+
+
 def manual_loop(model, toolbox, final, stats, options, system, user):
     """Function calling met de hand: de tools als tekst, het antwoord als JSON die wij zelf ontleden."""
     listing = json.dumps([s["function"] for s in toolbox.specs()] + [schema(final)["function"]], indent=1)
@@ -229,6 +253,8 @@ def run_case(variant, model, dataset, case, options, mcp_bridge=None, stats=None
     user = f"Validate {case['id']}."
     if variant == "direct":
         answer = direct(model, dataset, case, stats, options)
+    elif variant == "decide":
+        answer = decide(model, dataset, case, stats)
     elif variant == "manual":
         answer = manual_loop(model, LocalTools(dataset, case), submit, stats, options, TASK, user)
     elif variant == "native":

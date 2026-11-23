@@ -80,10 +80,19 @@ class FakeOllama(http.server.BaseHTTPRequestHandler):
             self._send({"version": "0.0.0-fake"})
         else:
             self._send({"models": [{"name": n, "digest": "sha256:" + n, "size": 2_000_000_000, "details": {"quantization_level": "Q4_K_M"}}
-                                   for n in ("good:1b", "sloppy:1b", "lazy:1b")]})
+                                   for n in ("good:1b", "sloppy:1b", "lazy:1b", "decider:1b")]})
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        if self.path == "/v1/systemone":  # een decision model dat de taak goed doet
+            question = body["questions"]["verdict"]
+            assert question["type"] == "choice" and "options" not in body
+            broken = CHECK["fn"](body["state"]["transactions"])
+            choice = broken[0] if broken else "valid"
+            probabilities = {option: 0.9 if option == choice else 0.1 / (len(question["criteria"]) - 1) for option in question["criteria"]}
+            self._send({"model": body["model"], "answers": {"verdict": {"type": "choice", "choice": choice, "probabilities": probabilities,
+                                                                       "confidence": 0.8}}, "usage": {"input_tokens": 500, "output_tokens": 1}})
+            return
         assert body["options"]["temperature"] == 0 and body["stream"] is False
         message = fake_model(body["messages"], body.get("tools"), body["model"].startswith("sloppy"), body.get("format") == "json",
                              lazy=body["model"].startswith("lazy"))
@@ -293,6 +302,13 @@ class Benchmark(unittest.TestCase):
         rows = self.rows("--models", "good:1b", "--variants", "direct,manual,native,multi", "--dataset", self.grfics_file)
         self.assertEqual({r["label"] for r in rows}, set(grfics.VERDICTS))
         self.assert_perfect(rows)
+
+    def test_decide_asks_one_choice_question_with_every_label(self):
+        rows = self.rows("--models", "decider:1b", "--variants", "decide", "--dataset", self.grfics_file)
+        self.assertEqual({r["label"] for r in rows}, set(grfics.VERDICTS))
+        self.assert_perfect(rows)
+        self.assertTrue(all(r["llm_calls"] == 1 and r["prompt_tokens"] == 500 for r in rows))
+        self.assertTrue(all(set(r["probabilities"]) == set(grfics.VERDICTS) and r["decision_confidence"] == 0.8 for r in rows))
 
     def test_invalid_calls_are_counted(self):
         rows = self.rows("--models", "sloppy:1b", "--variants", "manual,native", "--cases", "5")

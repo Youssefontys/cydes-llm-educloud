@@ -108,6 +108,12 @@ Behalve bij `direct` ziet het model de transacties niet in de prompt. Het moet z
 `native` staat erbij omdat `mcp` twee dingen tegelijk verandert ten opzichte van `manual`: de tool-aanroepen van Ollama,
 en MCP. Het verschil tussen `manual` en `native` is het eerste, het verschil tussen `native` en `mcp` is MCP zelf.
 
+Een zesde variant, `decide`, is voor **decision models** (Ollama-capability "decision", zoals pplx-decider-flash): geen
+tekst en geen tools, maar hetzelfde bewijs als `direct` als toestand, één keuzevraag met de labels (omschreven met de
+regelteksten uit het beleid) en een kans per label terug, via Ollama's `/v1/systemone`. De kansen en de confidence
+staan per run in het resultaatbestand (`probabilities`, `decision_confidence`). `decide` hoort niet bij de standaard
+`--variants`; geef hem expliciet mee, met een decision model. Zie het plan in [docs/experimenten.md](docs/experimenten.md).
+
 `multi` gebruikt geen framework: het zijn twee keer dezelfde lus met een andere opdracht. Het onderzoek naar MCP noemt
 vier rollen (hoofd, security, analyse, verificatie); twee is het kleinste dat al laat zien wat een tweede agent kost.
 

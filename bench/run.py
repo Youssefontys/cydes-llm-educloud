@@ -116,7 +116,8 @@ def environment(models, args, dataset):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--models", required=True, help="modelnamen zoals Ollama ze kent, gescheiden door komma's")
-    parser.add_argument("--variants", default=",".join(VARIANTS), help=f"standaard alle vijf: {','.join(VARIANTS)}")
+    parser.add_argument("--variants", default=",".join(runners.GENERATIVE),
+                        help=f"standaard de vijf voor taalmodellen: {','.join(runners.GENERATIVE)}; decide alleen met een decision model")
     parser.add_argument("--dataset", help="een GRFICS-dataset (data/grfics-*.json); zonder: de nagemaakte cases")
     parser.add_argument("--cases", type=int, default=30, help="alleen zonder --dataset: hoeveel nagemaakte cases (standaard 30)")
     parser.add_argument("--seed", type=int, default=1, help="de seed van het model, en van de nagemaakte cases (standaard 1)")

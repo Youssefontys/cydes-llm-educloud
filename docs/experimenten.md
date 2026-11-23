@@ -396,3 +396,67 @@ hardware-afhankelijkheid zijn (zie de MAX_STEPS-sectie).
 - Volgens het principe "eerst klein, alleen wat overtuigend beter lijkt krijgt een volledige meting" verdient
   Qwen3.5 4B een meting op alle 20 cases. Die moet naast een nieuwe meting van qwen2.5:3b op dezelfde 4-CPU-VM,
   omdat de volledige metingen van 17/18/19-11 op 2 CPU's zijn gedaan.
+
+## Plan: lokale decision models (apart spoor, toegevoegd 2026-11-23)
+
+**Aanleiding**: decision models (ook "System One"-modellen) zoals Jev van TypeSafe AI (sept. 2026) genereren geen
+tekst. Ze krijgen een toestand (tekst of JSON) en vooraf getypeerde vragen, en geven in één forward pass per
+antwoordoptie een gekalibreerde kans terug. Onze taak heeft precies die vorm: één keuze uit vijf vaste labels. Het
+raakt drie eerdere bevindingen direct:
+
+- een antwoord dat niet in de vaste lijst past (MAX_STEPS-sectie), kan hier per constructie niet;
+- het confidence-veld zei niets over juistheid (grfics-016 zelfverzekerd fout); decision models zijn juist op
+  gekalibreerde kansen getraind;
+- confabulatie: het model kan geen eigen onderbouwing verzinnen, het kiest alleen.
+
+**Wat ertegen pleit, vooraf bekend**:
+
+- Jev zelf is alleen een gehoste API (TypeSafe, VS). Dat botst met het uitgangspunt dat gevoelige data de eigen
+  infrastructuur niet verlaat. Daarom alleen **lokale, open** decision models.
+- Geen tool calling: één stap, dus al het bewijs moet in de toestand staan. Het is een tegenhanger van `direct`,
+  niet van `native`/`manual`.
+- "What Can't Jev Decide?" (arXiv 2610.24929) meldt dat de nauwkeurigheid zakt zodra het antwoord afhangt van het
+  combineren van meerdere records, en dat het model een meegegeven toestand niet controleert. Wij vergelijken per
+  case 16 tot 25 transacties met een beleid; dat is precies dat soort taak.
+
+**Technisch haalbaar, gecontroleerd 2026-11-23**: Ollama heeft een categorie "decision" en een endpoint
+`POST /v1/systemone` (Ollama ≥ 0.35.0; de VM draait 0.40.16 en kent het endpoint). Aanroep: `model`, `state` (string
+of JSON) en `questions` (1 tot 64, elk `choice`, `noul` of `score`). Antwoord: per vraag de keuze, de kans per optie
+en een `confidence`, plus `usage`. Geen streaming, geen tools; de invoer moet volledig in het contextvenster passen
+(wordt nooit afgekapt).
+
+**Opzet**:
+
+- Een nieuwe variant `decide` in de benchmark: `state` = hetzelfde bewijs als `direct` (`dataset.evidence(case)`:
+  beleid, registers, alle transacties), één `choice`-vraag met de vijf labels en als `criteria` de regelteksten uit
+  `grfics.RULE_TEXT`. Loggen: keuze, kans per label, confidence, tokens, tijd.
+- Variant van de vraag, als tweede proef: vier losse `noul`-vragen ("breekt dit verkeer regel X?"), elk in een
+  eigen verzoek; Perplexity meldt voor pplx-decider-flash iets hogere scores met één vraag per verzoek (60,05 tegen
+  58,88 op hun Decision Index).
+- **Basislijn**: `direct` van qwen2.5:3b en van qwen3.5:4b op dezelfde 6 cases en dezelfde 4-CPU-VM. Die bestaan
+  nog niet op deze VM en draaien eerst mee (snel: één aanroep per case).
+- Dezelfde 6 cases, seed 1, dezelfde VM.
+
+**Kandidaten** (lokaal, passen op de VM; grootte nog per model te controleren):
+
+1. `pplx-decider-flash:4b` (Perplexity, 5,6 GB, Apache 2.0) — gebouwd op Qwen3.5-4B, dus de schoonste vergelijking
+   met ons beste generatieve model.
+2. `d1:3b` (Liquid AI, op LFM2.5-VL-3B).
+3. `tev1:4b` (Together AI).
+4. Daarna, alleen als een van deze drie iets laat zien: `nimble:9b` (Bespoke Labs), `autotrust-jev:9b`,
+   `strands-decider:2b`.
+
+**Beslisregel**: het spoor is geslaagd als een decision model op de 6 cases meer juiste oordelen haalt dan beide
+`direct`-basislijnen, zonder meer vals alarm. Extra meetpunt: hangt de kans van het gekozen label samen met
+juistheid (wat het confidence-veld van qwen2.5:3b niet deed)? Bij succes is de volgende vraag of een decision
+model als **verificatie-agent** werkt: het oordeel van het LLM-agent na het ophalen van bewijs laten keuren, zoals
+de "Verificatie-Agent" en de onafhankelijke verificatie in het bord-diagram.
+
+**Volgorde, voorstel**: eerst LFM2.5 afmaken (loopt), dan dit spoor (goedkoop: één aanroep per case), dan ronde 2,
+en de volledige meting van Qwen3.5 4B 's nachts.
+
+**Gebouwd (2026-11-23)**: de variant `decide` in `bench/runners.py`, zoals hierboven opgezet (alleen de eerste opzet:
+één `choice`-vraag; de vier losse `noul`-vragen nog niet). Geen `options` (temperatuur, seed, context) mee, want
+`/v1/systemone` ondersteunt die niet. Het bewijs is 1.600 tot 2.000 tokens per case (geschat), ruim binnen elk
+contextvenster. Nieuwe test met een nep-decision-model; alle 21 tests slagen (1 overgeslagen). Nog niet tegen een
+echt decision model gedraaid: dat volgt na LFM2.5, om die proef niet te storen.
