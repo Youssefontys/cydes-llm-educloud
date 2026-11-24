@@ -27,6 +27,29 @@ import urllib.error
 from . import datasets, runners
 
 VARIANTS = runners.VARIANTS
+RETRIES, WAIT_SECONDS, POLL_SECONDS = 3, 300, 10
+
+
+def ollama_down(problem):
+    """Een fout van Ollama als dienst (weg, herstart), niet van het model: daar wachten we op in plaats van een run als fout weg te schrijven."""
+    return isinstance(problem, ConnectionError) or (isinstance(problem, urllib.error.URLError) and isinstance(problem.reason, ConnectionError))
+
+
+def wait_for_ollama(seconds=WAIT_SECONDS):
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        try:
+            runners.ollama("/api/version", timeout=POLL_SECONDS)
+            return True
+        except Exception:
+            time.sleep(POLL_SECONDS)
+    return False
+
+
+def unload_models():
+    """Haalt alle geladen modellen uit het geheugen, zodat er nooit twee grote modellen tegelijk in staan (OOM op 2026-11-24)."""
+    for loaded in runners.ollama("/api/ps").get("models") or []:
+        runners.ollama("/api/generate", {"model": loaded["name"], "keep_alive": 0})
 
 
 class ProcessMeter:
@@ -186,18 +209,26 @@ def main(argv=None):
         n = 0
         try:
             for model in models:
+                unload_models()
                 for variant in variants:
                     for repeat in range(1, args.repeats + 1):
                         for case in dataset.cases:
                             n += 1
                             if (model, variant, case["id"], repeat) in done:
                                 continue
-                            started, error, verdict, reason, confidence, stats = time.monotonic(), None, None, None, None, runners.Stats()
-                            with ProcessMeter(is_ollama) as llm, ProcessMeter(is_mcp_server) as server:
-                                try:
-                                    verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case, options, bridge, stats)
-                                except Exception as problem:  # één mislukte run mag de rest niet stoppen
-                                    error = f"{type(problem).__name__}: {problem}"[:300]
+                            for attempt in range(RETRIES + 1):
+                                started, error, verdict, reason, confidence, stats = time.monotonic(), None, None, None, None, runners.Stats()
+                                with ProcessMeter(is_ollama) as llm, ProcessMeter(is_mcp_server) as server:
+                                    try:
+                                        verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case, options, bridge, stats)
+                                    except Exception as problem:  # één mislukte run mag de rest niet stoppen
+                                        error = f"{type(problem).__name__}: {problem}"[:300]
+                                        if ollama_down(problem):
+                                            print(f"Ollama is weg ({error}); wachten en {case['id']} opnieuw ({attempt + 1}/{RETRIES}).")
+                                            if attempt < RETRIES and wait_for_ollama():
+                                                continue
+                                            sys.exit(f"Ollama bleef weg. Niets weggeschreven voor {case['id']}; dezelfde opdracht opnieuw gaat hier verder.")
+                                break
                             wall = time.monotonic() - started
                             row = {"model": model, "variant": variant, "case": case["id"], "repeat": repeat, "label": case["label"],
                                    "verdict": verdict, "reason": reason, "confidence": confidence, "correct": verdict == case["label"],

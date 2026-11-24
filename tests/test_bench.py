@@ -16,6 +16,8 @@ import sys
 import tempfile
 import threading
 import unittest
+import urllib.error
+from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 from bench import build, datasets, grfics, modbus, pcap, report, run, runners  # noqa: E402
@@ -84,6 +86,10 @@ class FakeOllama(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        if self.path == "/api/generate":  # een model uit het geheugen halen (keep_alive 0)
+            assert body["keep_alive"] == 0
+            self._send({"done": True})
+            return
         if self.path == "/v1/systemone":  # een decision model dat de taak goed doet
             question = body["questions"]["verdict"]
             assert question["type"] == "choice" and "options" not in body
@@ -309,6 +315,20 @@ class Benchmark(unittest.TestCase):
         self.assert_perfect(rows)
         self.assertTrue(all(r["llm_calls"] == 1 and r["prompt_tokens"] == 500 for r in rows))
         self.assertTrue(all(set(r["probabilities"]) == set(grfics.VERDICTS) and r["decision_confidence"] == 0.8 for r in rows))
+
+    def test_ollama_going_away_is_waited_for_not_logged_as_a_failed_run(self):
+        real, calls = runners.run_case, []
+
+        def flaky(*args, **kwargs):
+            calls.append(1)
+            if len(calls) == 1:
+                raise urllib.error.URLError(ConnectionRefusedError(111, "Connection refused"))
+            return real(*args, **kwargs)
+
+        with mock.patch.object(runners, "run_case", flaky), mock.patch.object(run, "wait_for_ollama", return_value=True):
+            rows = self.rows("--models", "good:1b", "--variants", "direct", "--cases", "3")
+        self.assertEqual(len(rows), 3)
+        self.assert_perfect(rows)
 
     def test_invalid_calls_are_counted(self):
         rows = self.rows("--models", "sloppy:1b", "--variants", "manual,native", "--cases", "5")

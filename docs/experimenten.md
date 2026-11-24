@@ -600,3 +600,67 @@ vragen, niet bij exacte vergelijkingen.
 
 Niet overgenomen: `unauthorized_write` nu aan de dataset toevoegen. Dan zijn alle metingen tot nu toe, inclusief de
 volledige metingen die nu lopen, niet meer vergelijkbaar. Dat hoort bij een volgende datasetversie.
+
+## Getest: ronde 2 (Qwen3.5 2B, Granite 4.2 3B, Gemma 4 E2B, Qwen3.5 9B)
+
+**Losse tool-check (2026-11-23)**: alle vier gaven via `native` echte tool-aanroepen met `start` als getal, zonder
+denkwerk (`--think off`). Granite 4.2 meldt lokaal de capability `tools`, ook al ontbreekt het label in de Library.
+
+**Test**: `native` en `manual`, `--think off`, dezelfde 6 cases, 4 CPU's, PAGE 30, bewijs-afdwinging aan, MAX_STEPS
+12, `num_predict` 600, seed 1. Bestand: [results/proef-ronde2-4cpu.jsonl](../results/proef-ronde2-4cpu.jsonl).
+Basislijn (qwen2.5:3b, zelfde VM): native 0/6, manual 2/6. Beste tot nu toe: Qwen3.5 4B, native 2/6, manual 4/6.
+
+| Model | Variant | Juist | Overtreding gemeld | Vals alarm | Geen oordeel | Tijd (6 cases) |
+|---|---|---|---|---|---|---|
+| Qwen3.5 2B | native | 0/6 | 0/4 | 1/2 | 4 | 34 min |
+| Qwen3.5 2B | manual | 3/6 (012, 013, 016) | 4/4, 3 juiste regel | 2/2 | 0 | 5 min |
+| Granite 4.2 3B | native | 0/6 | 0/4 | 0/2 | 6 | 93 min |
+| Granite 4.2 3B | manual | 2/6 (001, 005) | 0/4 | 0/2 | 0 | 43 min |
+| **Gemma 4 E2B** | **native** | **4/6** (001, 005, 013, 016) | 2/4, juiste regel | 0/2 | 1 | **6 min** |
+| Gemma 4 E2B | manual | 1/6 | 0/4 | 0/2 | 1 | 4 min |
+| Qwen3.5 9B | native | 1/6 (012) | 1/4, juiste regel | 0/2 | 5 | 152 min |
+| Qwen3.5 9B | manual | 2/6 (012, 017) | **4/4, 2 juiste regel** | 0/2 | 2 | 66 min |
+
+**Uitkomst**:
+
+- **Gemma 4 E2B via `native` evenaart de beste** (4/6, geen vals alarm), in ongeveer een minuut per case. Het is het
+  eerste model dat via `native` beter scoort dan via `manual`, en daarmee de `native`-winnaar.
+- **Qwen3.5 9B vond als enige `unknown_client` (012) én `illegal_address` (017)**, de twee overtredingen die
+  Qwen3.5 4B en Gemma 4 E2B missen. Via `manual` meldde het alle vier overtredingen zonder vals alarm, maar liep het
+  op beide valid-cases vast op het stappenbudget. Groter helpt hier dus wel bij het vinden, niet bij het afronden,
+  en het kost veel tijd (1 tot 2,5 uur voor 6 cases).
+- **Qwen3.5 2B via `manual` vond drie overtredingen met de juiste regel**, maar gaf ook op beide valid-cases vals
+  alarm.
+- **Granite 4.2 liep via `native` in alle zes cases vast.** Het ontbrekende tools-label in de Library was dus toch
+  een waarschuwing, ook al slaagde de losse tool-check.
+
+**Winnaars per variant op deze 6 cases** (voor het plan "beste model per variant"):
+
+| Variant | Winnaar | Juist | Nog open |
+|---|---|---|---|
+| `direct` | Qwen3.5 4B | 4/6 | de vier ronde 2-modellen hebben nog geen `direct`-proef |
+| `manual` | Qwen3.5 4B | 4/6 | — |
+| `native` | Gemma 4 E2B | 4/6 | — |
+| `mcp`, `multi` | Gemma 4 E2B (volgt `native`) | — | nog te meten |
+
+## Mislukt: de eerste volledige meting (2026-11-24, 02:24)
+
+Direct na ronde 2 startte de volledige meting van Qwen3.5 4B. Bij de eerste aanroep liep de VM vol op geheugen: de
+OOM-killer stopte een `llama-server` van 14,4 GB, Ollama crashte daarna (nil pointer in zijn scheduler) en systemd
+herstartte het binnen 3 seconden. Vermoedelijk zat Qwen3.5 9B uit ronde 2 nog in het geheugen toen Qwen3.5 4B werd
+geladen. In die 3 seconden liep de benchmark door alle 99 resterende runs heen en schreef ze weg als fout
+("connection refused"); de meting van qwen2.5:3b startte daarna niet eens. Het bestand
+(`2026-11-23-qwen3.5-4b-4cpu.jsonl`) bevat dus alleen foutregels en is opzijgezet, niet gebruikt.
+
+**Lessen**: (1) een wegvallend Ollama moet de benchmark laten wachten in plaats van runs als fout te laten
+wegschrijven; (2) tussen modellen expliciet het vorige model uit het geheugen halen (`ollama stop`).
+
+**Opgelost in `bench/run.py`**:
+
+- Een fout van Ollama als dienst (connection refused, verbinding verbroken) telt niet meer als mislukte run. De run
+  wacht tot Ollama terug is (tot 5 minuten) en probeert dezelfde case opnieuw, tot 3 keer. Blijft Ollama weg, dan
+  stopt de run zonder een regel weg te schrijven, zodat dezelfde opdracht later verdergaat. Fouten van het model
+  zelf (zoals een HTTP 500) worden nog steeds als fout gelogd.
+- Aan het begin van elk model haalt de run alle geladen modellen uit het geheugen (`keep_alive: 0`), zodat er nooit
+  twee grote modellen tegelijk in staan.
+- Nieuwe test met een Ollama dat één keer wegvalt; alle 22 tests slagen (1 overgeslagen).
