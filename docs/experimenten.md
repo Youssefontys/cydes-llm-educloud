@@ -638,10 +638,24 @@ Basislijn (qwen2.5:3b, zelfde VM): native 0/6, manual 2/6. Beste tot nu toe: Qwe
 
 | Variant | Winnaar | Juist | Nog open |
 |---|---|---|---|
-| `direct` | Qwen3.5 4B | 4/6 | de vier ronde 2-modellen hebben nog geen `direct`-proef |
+| `direct` | Qwen3.5 4B | 4/6 | — (bevestigd door de `direct`-proef hieronder) |
 | `manual` | Qwen3.5 4B | 4/6 | — |
 | `native` | Gemma 4 E2B | 4/6 | — |
-| `mcp`, `multi` | Gemma 4 E2B (volgt `native`) | — | nog te meten |
+| `mcp`, `multi` | Gemma 4 E2B (volgt `native`) | — | volledige meting staat in de wachtrij |
+
+**`direct`-proef van de ronde 2-modellen (2026-11-24)**: zelfde 6 cases en VM, `--think off`. Bestand:
+[results/proef-direct-ronde2-4cpu.jsonl](../results/proef-direct-ronde2-4cpu.jsonl).
+
+| Model | Juist | Overtreding gemeld | Vals alarm | Tijd (6 cases) | Gedrag |
+|---|---|---|---|---|---|
+| Qwen3.5 9B | 3/6 (001, 005, 012) | 1/4, juiste regel | 0/2 | 14 min | vindt weer als enige `unknown_client` |
+| Gemma 4 E2B | 2/6 (001, 005) | 0/4 | 0/2 | 2 min | zes keer `valid` |
+| Granite 4.2 3B | 2/6 (001, 005) | 0/4 | 0/2 | 7 min | zes keer `valid` |
+| Qwen3.5 2B | 1/6 (012) | 4/4, 1 juiste regel | 2/2 | 4 min | wisselt `unknown_client` en `unauthorized_write` af |
+
+Geen van de vier haalt de 4/6 van Qwen3.5 4B via `direct`; de winnaars per variant blijven zoals hierboven. Opvallend:
+Gemma 4 E2B is via `native` de beste (4/6), maar zegt via `direct` en `manual` vrijwel alleen `valid`. Het model haalt
+het meeste uit Ollama's eigen tool-aanroepen, niet uit alles in één prompt.
 
 ## Mislukt: de eerste volledige meting (2026-11-24, 02:24)
 
