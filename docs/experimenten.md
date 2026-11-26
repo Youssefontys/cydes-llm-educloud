@@ -758,3 +758,34 @@ niet te beantwoorden.
 
 **Herstel (nog niet gedaan)**: de MCP-server dezelfde beschrijvingen laten geven als `datasets.py`, met een test die
 de twee schema's vergelijkt, en daarna alleen `mcp` opnieuw meten voor de drie modellen (samen ongeveer 7 uur).
+
+## Berekend: hoe groot is de marge met 20 cases? (2026-11-27)
+
+Voordat we herhalingen draaien: wat zeggen de bestaande metingen al? Geen nieuwe runs; bootstrap (10.000 keer 20
+cases trekken met teruglegging) en een exacte McNemar-toets op dezelfde cases.
+
+| Variant | Juist | 95%-interval (bootstrap) |
+|---|---|---|
+| Gemma 4 E2B `multi` | 15/20 | 11-18 |
+| Qwen3.5 4B `manual` | 14/20 | 10-18 |
+| Qwen3.5 4B `direct` | 13/20 | 9-17 |
+| Gemma 4 E2B `native` | 12/20 | 8-16 |
+| qwen2.5:3b `manual` | 12/20 | 8-16 |
+
+| Vergelijking (A tegen B) | Alleen A juist | Alleen B juist | p (McNemar, exact) |
+|---|---|---|---|
+| Gemma `multi` tegen Qwen3.5 4B `manual` | 1 | 0 | 1,0 |
+| Gemma `multi` tegen Qwen3.5 4B `direct` | 3 | 1 | 0,63 |
+| Gemma `multi` tegen Gemma `native` | 3 | 0 | 0,25 |
+| Gemma `multi` tegen altijd `valid` | 4 | 0 | 0,13 |
+
+**Uitkomst: met 20 cases is geen enkel verschil tussen de beste varianten significant, zelfs niet het verschil met
+altijd `valid` zeggen.** Gemma `multi` en Qwen3.5 4B `manual` verschillen op precies één case. De intervallen van de
+top vijf overlappen bijna helemaal. "Gemma `multi` is de beste" betekent dus: kwam het hoogst uit, niet: is beter.
+
+**Waarom herhalen hier weinig oplost**: alle metingen draaien met `temperature` 0 en een vaste seed. Het model kiest
+dan steeds het meest waarschijnlijke token; een herhaling met dezelfde instellingen geeft (vrijwel) dezelfde run, en
+een andere seed verandert bij temperatuur 0 niets. Herhalen meet dan alleen of de opzet deterministisch is. Het zegt
+iets over de spreiding per run pas met een temperatuur boven 0, en dan is het een andere instelling dan in de
+metingen. Bovendien zit de grootste onzekerheid niet in de runs maar in het aantal cases: 9 overtredingen, waarvan 3
+per regel. Een kleiner interval vraagt meer cases, dus een nieuwe opname in GRFICS met meer scenario-runs.
