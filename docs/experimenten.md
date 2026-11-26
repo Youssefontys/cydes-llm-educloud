@@ -543,7 +543,7 @@ best is (één variabele per keer). Het beste model per variant beantwoordt een 
 **Opzet, in deze volgorde**:
 
 1. **Architectuurvergelijking**: de volledige metingen van Qwen3.5 4B en qwen2.5:3b, alle vijf varianten op alle 20
-   cases, op de 4-CPU-VM (loopt, `keten2.sh`).
+   cases, op de 4-CPU-VM (af, 24-11; zie "Gemeten: de volledige metingen" onderaan).
 2. **Winnaar per variant kiezen**, op dezelfde 6 cases en dezelfde VM:
    - `native` en `manual`: uit ronde 1 en ronde 2 (alle modellen hebben die al gedraaid).
    - `direct`: nu alleen qwen2.5:3b en Qwen3.5 4B gemeten. De vier modellen van ronde 2 krijgen nog een korte
@@ -678,3 +678,83 @@ wegschrijven; (2) tussen modellen expliciet het vorige model uit het geheugen ha
 - Aan het begin van elk model haalt de run alle geladen modellen uit het geheugen (`keep_alive: 0`), zodat er nooit
   twee grote modellen tegelijk in staan.
 - Nieuwe test met een Ollama dat één keer wegvalt; alle 22 tests slagen (1 overgeslagen).
+
+## Gemeten: de volledige metingen (2026-11-24 en -25)
+
+Na de reparatie liep de keten opnieuw en zonder fouten: Qwen3.5 4B en qwen2.5:3b in alle vijf varianten, daarna Gemma
+4 E2B (de `native`-winnaar) in `native`, `mcp` en `multi`. Alle 20 cases, 4 CPU's (Large Instance), `--think off`,
+PAGE 30, bewijs-afdwinging aan, MAX_STEPS 12, `num_predict` 600, seed 1. Geen enkele run met een fout. Bestanden:
+[2026-11-24-qwen3.5-4b-4cpu.jsonl](../results/2026-11-24-qwen3.5-4b-4cpu.jsonl),
+[2026-11-24-qwen2.5-3b-4cpu.jsonl](../results/2026-11-24-qwen2.5-3b-4cpu.jsonl),
+[2026-11-24-gemma4-e2b-4cpu.jsonl](../results/2026-11-24-gemma4-e2b-4cpu.jsonl). De tabellen van `bench.report` staan
+in de README onder Metingen.
+
+Ter vergelijking: altijd `valid` zeggen haalt al 11/20 (55%), want 11 van de 20 cases zijn valid. Een variant is pas
+bruikbaar als hij overtredingen vindt zonder de valid-cases kwijt te raken.
+
+| Model | Variant | Juist | Overtreding, juiste regel | Vals alarm | Geen oordeel | CPU-s per juist | Rekentijd |
+|---|---|---|---|---|---|---|---|
+| Qwen3.5 4B | direct | 13/20 | **4/9** | 2/11 | 0 | 514 | 0,5 u |
+| Qwen3.5 4B | manual | 14/20 | 3/9 | 0/11 | 0 | 627 | 0,6 u |
+| Qwen3.5 4B | native | 3/20 | 1/9 | 0/11 | 15 | 20.381 | 4,3 u |
+| Qwen3.5 4B | mcp | 10/20 | 2/9 | 1/11 | 9 | 6.005 | 4,2 u |
+| Qwen3.5 4B | multi | 3/20 | 1/9 | 0/11 | 16 | 42.096 | 8,8 u |
+| qwen2.5:3b | direct | 2/20 | 2/9 | 11/11 | 0 | 2.679 | 0,4 u |
+| qwen2.5:3b | manual | 12/20 | 1/9 | 0/11 | 0 | 691 | 0,6 u |
+| qwen2.5:3b | native | 7/20 | 1/9 | 2/11 | 5 | 4.849 | 2,4 u |
+| qwen2.5:3b | mcp | 11/20 | 2/9 | 0/11 | 4 | 2.637 | 2,0 u |
+| qwen2.5:3b | multi | 9/20 | 3/9 | 4/11 | 1 | 6.406 | 4,0 u |
+| Gemma 4 E2B | native | 12/20 | 3/9 | 1/11 | 3 | **353** | 0,3 u |
+| Gemma 4 E2B | mcp | 1/20 | 0/9 | 0/11 | 19 | 10.490 | 0,7 u |
+| **Gemma 4 E2B** | **multi** | **15/20** | **4/9** | **0/11** | 1 | 860 | 0,9 u |
+
+**Uitkomst**:
+
+- **Gemma 4 E2B via `multi` is de beste meting tot nu toe**: 15/20, F1 71%, geen vals alarm, in minder dan een uur
+  voor 20 cases. Het is ook de enige combinatie die vier overtredingen vindt zonder één valid-case kwijt te raken.
+  Gemma via `native` is het goedkoopst per juist oordeel (353 CPU-seconden).
+- **De schone architectuurvergelijking (één model, vijf varianten) wijst bij beide Qwen-modellen naar `manual`**:
+  14/20 en 12/20, zonder vals alarm, en het goedkoopst per juist oordeel of op één na. Bij Qwen3.5 4B haalt `direct` bijna hetzelfde
+  (13/20) en vindt het meer overtredingen (4/9), maar met twee keer vals alarm.
+- **De tool-lussen lopen bij de Qwen-modellen vast op het stappenbudget.** Bij elke "geen oordeel" van Qwen3.5 4B in
+  `native`, `mcp` en `multi` maakte een lus alle 12 aanroepen op. Het model vraagt gemiddeld bijna vijf
+  registermaps op voordat het oordeelt. Daardoor kosten die varianten 10 tot 70 keer zoveel CPU per juist oordeel.
+  Gemma doet in `native` vier aanroepen per case en is dan klaar.
+- **Op 6 cases leek het beter dan op 20.** Qwen3.5 4B `native` haalde op de zes proefcases 2/6, nu 3/20; Gemma
+  `native` 4/6, nu 12/20 (dus 8 van de 14 overige). De proefcases bevatten relatief veel overtredingen; de keuze van
+  de winnaars blijft staan, de proefscores niet.
+- **Wie vindt welke overtreding?** `forbidden_function` (013, 016, 019) gaat het best: Qwen3.5 4B via `direct` en
+  `manual`, en Gemma via `native` en `multi`, vinden ze alle drie. `illegal_address` vond Gemma nooit. Case 020 werd
+  alleen gevonden in de tool-lussen van de Qwen-modellen (`native` en `mcp`), die veel registermaps opvragen; 014 en
+  017 alleen door qwen2.5:3b, dat via `direct` bijna overal `illegal_address` zegt (11/11 vals alarm), dus dat telt
+  nauwelijks als vinden. Van `unknown_client` (012, 015, 018) vond alleen qwen2.5:3b via `multi` er twee; geen
+  variant vond ze alle drie.
+- **Gemma geeft drie keer een verdict dat niet bestaat** (`native` 010, 012, 015): een lange redenering over de
+  schrijfrechten van de HMI, maar geen geldige regelnaam. Dat telt als geen oordeel.
+
+## Gevonden: `mcp` krijgt kalere tool-beschrijvingen dan `native` (2026-11-27)
+
+Gemma 4 E2B gaf via `mcp` 19 keer geen oordeel, tegen 3 keer via `native`, terwijl beide varianten dezelfde lus
+gebruiken (`native_loop`). Met één case nagespeeld op de VM (`think` uit, zoals in de meting): Gemma roept
+`get_register_map` aan met `{"server": "grfics-001"}`, het case-id in plaats van een IP-adres. Die aanroep mislukt,
+dus telt er geen registeraanroep. De bewijs-afdwinging weigert daarna elk oordeel ("You have not checked a register
+map..."), tot de 12 stappen op zijn. Gemiddeld haalde Gemma via `mcp` 0,15 geslaagde registeraanroepen per run, via
+`native` 1,0.
+
+De oorzaak zit in de benchmark, niet in het protocol: de MCP-server ([bench/mcp_server.py](../bench/mcp_server.py))
+beschrijft zijn tools anders dan [bench/datasets.py](../bench/datasets.py) voor de andere varianten.
+
+| | `native` (datasets.py) | `mcp` (mcp_server.py) |
+|---|---|---|
+| `get_transactions` | "up to 30 ... Fields: i, t, src, dst, fc, addr, count, values, exception" | "up to 10", geen velden uitgelegd |
+| `start` | verplicht, met uitleg | optioneel (standaard 0), zonder uitleg |
+| `server` | "IP address of the server, as in dst." | geen uitleg |
+
+**Gevolg**: het verschil tussen `native` en `mcp` in alle metingen tot nu toe meet niet alleen het protocol, maar ook
+deze beschrijvingen. Bij Gemma verklaart het de 19 keer geen oordeel. Bij de Qwen-modellen werkt het andersom: `mcp` scoort daar
+juist beter dan `native` (10/20 tegen 3/20, en 11/20 tegen 7/20); waarom is niet uitgezocht, maar ook daar kan het aan
+de beschrijvingen liggen in plaats van aan het protocol. Deelvraag 2 (wat voegt MCP toe?) is met deze data dus
+niet te beantwoorden.
+
+**Herstel (nog niet gedaan)**: de MCP-server dezelfde beschrijvingen laten geven als `datasets.py`, met een test die
+de twee schema's vergelijkt, en daarna alleen `mcp` opnieuw meten voor de drie modellen (samen ongeveer 7 uur).

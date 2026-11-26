@@ -14,8 +14,10 @@ draaien lokaal in Ollama. Het bewijs komt uit GRFICSv3, een nagebootste fabriek 
 | 2. Maakt MCP het beter? | `mcp` (variant B): dezelfde tools via een MCP-server. `native` is de tussenstap |
 | 3. Maken meerdere agents het beter? | `multi` (variant C): een analist en een reviewer |
 
-**Status:** de benchmark draait op Educloud, op een dataset uit GRFICS van 2026-11-17. Er is alleen een proefrun gedaan;
-een meting die telt staat onder [Metingen](#metingen), met datum. Zolang die tabel leeg is, is er geen uitkomst.
+**Status:** de benchmark draait op Educloud, op een dataset uit GRFICS van 2026-11-17. De metingen die tellen staan
+onder [Metingen](#metingen), met datum. De beste tot nu toe (2026-11-25): Gemma 4 E2B via `multi`, 15 van de 20 cases
+juist en geen vals alarm. Let op: `native` en `mcp` zijn nog niet zuiver te vergelijken, zie
+[docs/experimenten.md](docs/experimenten.md).
 
 ## De taak: Modbus-verkeer bij de PLC toetsen aan een beleid
 
@@ -231,7 +233,8 @@ Niet getest:
 
 - **Het schrijfscenario** (`hmi-write-back`) is niet in GRFICS uitgevoerd.
 - **`deployment.py data` en `bench` als geheel**: de stappen erin zijn met de hand gedaan, de scripts zelf niet.
-- **Andere modellen dan `qwen2.5:3b`.**
+- **Een zuivere vergelijking van `native` en `mcp`**: de MCP-server beschrijft de tools anders dan de andere
+  varianten (zie [docs/experimenten.md](docs/experimenten.md)).
 
 ## Metingen
 
@@ -242,6 +245,9 @@ Waarom we iets probeerden, en wat dat liet zien: [docs/experimenten.md](docs/exp
 | 2026-11-17 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-17-qwen2.5-3b.jsonl](results/2026-11-17-qwen2.5-3b.jsonl) | zie tabellen hieronder |
 | 2026-11-18 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-18-qwen2.5-3b.jsonl](results/2026-11-18-qwen2.5-3b.jsonl) | herhaling, met `reason` en `evidence_complete`; zie tabellen hieronder |
 | 2026-11-19 | Medium Instance+ (2 CPU, 12 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-19-qwen2.5-3b.jsonl](results/2026-11-19-qwen2.5-3b.jsonl) | bewijs afgedwongen + `PAGE` 10→30; zie tabellen hieronder en [docs/experimenten.md](docs/experimenten.md) |
+| 2026-11-24 | Large Instance (4 CPU, 16 GB) | qwen3.5:4b-q4_K_M | grfics-2026-11-17.json (20 cases) | [results/2026-11-24-qwen3.5-4b-4cpu.jsonl](results/2026-11-24-qwen3.5-4b-4cpu.jsonl) | architectuurvergelijking; zie hieronder |
+| 2026-11-24 | Large Instance (4 CPU, 16 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-24-qwen2.5-3b-4cpu.jsonl](results/2026-11-24-qwen2.5-3b-4cpu.jsonl) | architectuurvergelijking; zie hieronder |
+| 2026-11-25 | Large Instance (4 CPU, 16 GB) | gemma4:e2b-it-qat | grfics-2026-11-17.json (20 cases) | [results/2026-11-24-gemma4-e2b-4cpu.jsonl](results/2026-11-24-gemma4-e2b-4cpu.jsonl) | `native`-winnaar in `native`, `mcp`, `multi`; zie hieronder |
 
 Een proefrun telt niet als meting: die is om te zien dat de keten werkt. Zet bij een meting die telt het JSONL-bestand
 in git (`git add -f results/<naam>.jsonl`) en de tabellen van `bench.report` hieronder.
@@ -326,6 +332,53 @@ model vaker `valid` bij een echte overtreding dan voorheen met onvolledig bewijs
 kosten gingen flink omhoog: 2-3x zoveel modelaanroepen en CPU-tijd per run. Omdat drie dingen tegelijk veranderden
 (bewijs afdwingen, `PAGE` 10→30, `num_predict`-cap), is de oorzaak van de verslechtering nog niet geïsoleerd — zie
 [docs/experimenten.md](docs/experimenten.md) voor de vervolghypothese.
+
+### 2026-11-24 en -25: drie modellen op 4 CPU's
+
+Gemeten vanaf 2026-11-24T02:57:29+00:00: 4 CPU's, 15,6 GB, Ollama 0.40.16, dataset grfics (20 cases, 24c87dc58556,
+grfics-2026-11-17.json), context 4096 tokens, `--think off`, MAX_STEPS 12, bewijs afgedwongen, `PAGE` 30.
+qwen3.5:4b-q4_K_M: 3324 MB, Q4_K_M, digest d8b0f5e9760c. qwen2.5:3b: 1930 MB, Q4_K_M, digest 357c53fb659c.
+gemma4:e2b-it-qat: 4336 MB, Q4_0, digest 07ea59a47401.
+
+| Model | Variant | Runs | Juist | Precision | Recall | F1 | Consistent | Geen oordeel | Ongeldige aanroepen per run | Volledig bewijs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| qwen3.5:4b-q4_K_M | direct | 20 | 65% | 75% | 67% | 71% | - | 0 | 0.0 | - |
+| qwen3.5:4b-q4_K_M | manual | 20 | 70% | 100% | 33% | 50% | - | 0 | 0.0 | 100% |
+| qwen3.5:4b-q4_K_M | native | 20 | 15% | 100% | 11% | 20% | - | 15 | 3.8 | 100% |
+| qwen3.5:4b-q4_K_M | mcp | 20 | 50% | 67% | 22% | 33% | - | 9 | 3.0 | 100% |
+| qwen3.5:4b-q4_K_M | multi | 20 | 15% | 100% | 11% | 20% | - | 16 | 8.1 | 100% |
+| qwen2.5:3b | direct | 20 | 10% | 45% | 100% | 62% | - | 0 | 0.0 | - |
+| qwen2.5:3b | manual | 20 | 60% | 100% | 44% | 62% | - | 0 | 0.1 | 100% |
+| qwen2.5:3b | native | 20 | 35% | 50% | 22% | 31% | - | 5 | 3.8 | 100% |
+| qwen2.5:3b | mcp | 20 | 55% | 100% | 44% | 62% | - | 4 | 3.6 | 100% |
+| qwen2.5:3b | multi | 20 | 45% | 60% | 67% | 63% | - | 1 | 5.5 | 100% |
+| gemma4:e2b-it-qat | native | 20 | 60% | 75% | 33% | 46% | - | 3 | 0.0 | 100% |
+| gemma4:e2b-it-qat | mcp | 20 | 5% | - | 0% | 0% | - | 19 | 8.3 | 100% |
+| gemma4:e2b-it-qat | multi | 20 | 75% | 100% | 56% | 71% | - | 1 | 0.0 | 100% |
+
+| Model | Variant | Aanroepen model per run | Mediaan seconden | Tokens per seconde | CPU-seconden per run | Piekgeheugen MB | MCP-server MB | MCP-server CPU-seconden |
+|---|---|---|---|---|---|---|---|---|
+| qwen3.5:4b-q4_K_M | direct | 1.0 | 82 | 4.7 | 334 | 8492 | - | - |
+| qwen3.5:4b-q4_K_M | manual | 4.0 | 111 | 4.9 | 439 | 12131 | - | - |
+| qwen3.5:4b-q4_K_M | native | 11.7 | 715 | 4.6 | 3057 | 11888 | - | - |
+| qwen3.5:4b-q4_K_M | mcp | 11.2 | 733 | 4.7 | 3002 | 11781 | 65 | 0.0 |
+| qwen3.5:4b-q4_K_M | multi | 22.6 | 1652 | 4.7 | 6314 | 12037 | - | - |
+| qwen2.5:3b | direct | 1.0 | 68 | 6.2 | 268 | 4344 | - | - |
+| qwen2.5:3b | manual | 4.5 | 74 | 6.6 | 415 | 7729 | - | - |
+| qwen2.5:3b | native | 7.2 | 335 | 5.9 | 1697 | 10397 | - | - |
+| qwen2.5:3b | mcp | 7.3 | 321 | 6.1 | 1450 | 10400 | 65 | 0.0 |
+| qwen2.5:3b | multi | 13.1 | 594 | 6.1 | 2883 | 10398 | - | - |
+| gemma4:e2b-it-qat | native | 4.0 | 51 | 9.1 | 212 | 5815 | - | - |
+| gemma4:e2b-it-qat | mcp | 11.8 | 134 | 8.8 | 524 | 9787 | 66 | 0.0 |
+| gemma4:e2b-it-qat | multi | 8.0 | 160 | 8.8 | 645 | 12573 | - | - |
+
+Altijd `valid` zeggen haalt al 55% (11 van de 20 cases zijn valid). Gemma 4 E2B via `multi` is de beste meting tot
+nu toe: 75% juist, F1 71%, geen vals alarm. Gemma via `native` is het goedkoopst per juist oordeel. Met één model in
+alle varianten wint `manual` (Qwen3.5 4B 70%, qwen2.5:3b 60%). De tool-lussen van de Qwen-modellen lopen vaak vast op
+het stappenbudget: 15 en 16 keer geen oordeel bij Qwen3.5 4B in `native` en `multi`. De 19 keer geen oordeel van
+Gemma via `mcp` komt door een fout in de benchmark: de MCP-server beschrijft de tools kaler dan de andere varianten,
+waardoor Gemma `get_register_map` een case-id geeft in plaats van een IP-adres. Uitwerking in
+[docs/experimenten.md](docs/experimenten.md).
 
 ## GRFICSv3
 
