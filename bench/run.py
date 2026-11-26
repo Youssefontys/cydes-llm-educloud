@@ -132,7 +132,7 @@ def environment(models, args, dataset):
             "models": {m: {"digest": (tags.get(m) or {}).get("digest"), "size_mb": round(((tags.get(m) or {}).get("size") or 0) / 1e6),
                            "quantization": ((tags.get(m) or {}).get("details") or {}).get("quantization_level")} for m in models},
             "dataset": dataset.name, "dataset_fingerprint": dataset.fingerprint, "source": dataset.source, "cases": len(dataset.cases),
-            "num_ctx": args.num_ctx, "max_output_tokens": args.max_output_tokens, "temperature": 0, "seed": args.seed,
+            "num_ctx": args.num_ctx, "max_output_tokens": args.max_output_tokens, "temperature": args.temperature, "seed": args.seed,
             "max_steps": runners.MAX_STEPS, "think": args.think}
 
 
@@ -145,7 +145,12 @@ def main(argv=None):
     parser.add_argument("--cases", type=int, default=30, help="alleen zonder --dataset: hoeveel nagemaakte cases (standaard 30)")
     parser.add_argument("--seed", type=int, default=1, help="de seed van het model, en van de nagemaakte cases (standaard 1)")
     parser.add_argument("--only", help="alleen deze cases, ids gescheiden door komma's; voor een korte proef")
-    parser.add_argument("--repeats", type=int, default=1, help="hoe vaak elke case (standaard 1); meer geeft de consistentie")
+    parser.add_argument("--repeats", type=int, default=1,
+                        help="hoe vaak elke case (standaard 1); herhaling n draait met seed + n - 1, zodat herhalingen bij "
+                             "een temperatuur boven 0 echt kunnen verschillen")
+    parser.add_argument("--temperature", type=float, default=0.0,
+                        help="temperatuur van het model (standaard 0: steeds het waarschijnlijkste token, dan geven "
+                             "herhalingen vrijwel dezelfde run)")
     parser.add_argument("--num-ctx", type=int, default=4096, help="contextvenster in tokens (standaard 4096)")
     parser.add_argument("--max-output-tokens", type=int, default=600,
                         help="cap op de lengte van één antwoord (standaard 600); voorkomt dat een doorratelend model "
@@ -198,7 +203,7 @@ def main(argv=None):
             sys.exit("De variant mcp vraagt het pakket mcp: pip install -r requirements.txt, of laat mcp weg met --variants.")
         bridge = McpBridge(dataset)
 
-    options = {"temperature": 0, "seed": args.seed, "num_ctx": args.num_ctx, "num_predict": args.max_output_tokens}
+    options = {"temperature": args.temperature, "seed": args.seed, "num_ctx": args.num_ctx, "num_predict": args.max_output_tokens}
     if args.think:
         options["think"] = args.think == "on"
     total = len(models) * len(variants) * len(dataset.cases) * args.repeats
@@ -220,7 +225,8 @@ def main(argv=None):
                                 started, error, verdict, reason, confidence, stats = time.monotonic(), None, None, None, None, runners.Stats()
                                 with ProcessMeter(is_ollama) as llm, ProcessMeter(is_mcp_server) as server:
                                     try:
-                                        verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case, options, bridge, stats)
+                                        verdict, reason, confidence, stats = runners.run_case(variant, model, dataset, case,
+                                                                                              {**options, "seed": args.seed + repeat - 1}, bridge, stats)
                                     except Exception as problem:  # één mislukte run mag de rest niet stoppen
                                         error = f"{type(problem).__name__}: {problem}"[:300]
                                         if ollama_down(problem):
@@ -230,7 +236,7 @@ def main(argv=None):
                                             sys.exit(f"Ollama bleef weg. Niets weggeschreven voor {case['id']}; dezelfde opdracht opnieuw gaat hier verder.")
                                 break
                             wall = time.monotonic() - started
-                            row = {"model": model, "variant": variant, "case": case["id"], "repeat": repeat, "label": case["label"],
+                            row = {"model": model, "variant": variant, "case": case["id"], "repeat": repeat, "seed": args.seed + repeat - 1, "label": case["label"],
                                    "verdict": verdict, "reason": reason, "confidence": confidence, "correct": verdict == case["label"],
                                    "correct_binary": verdict is not None and (verdict == "valid") == (case["label"] == "valid"),
                                    "wall_seconds": round(wall, 2), **{k: round(v, 3) if isinstance(v, float) else v for k, v in stats.items()},

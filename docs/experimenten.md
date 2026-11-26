@@ -789,3 +789,23 @@ een andere seed verandert bij temperatuur 0 niets. Herhalen meet dan alleen of d
 iets over de spreiding per run pas met een temperatuur boven 0, en dan is het een andere instelling dan in de
 metingen. Bovendien zit de grootste onzekerheid niet in de runs maar in het aantal cases: 9 overtredingen, waarvan 3
 per regel. Een kleiner interval vraagt meer cases, dus een nieuwe opname in GRFICS met meer scenario-runs.
+
+## Plan: herhalingen bij temperatuur 0,7 en een grotere dataset (2026-11-27)
+
+Twee sporen tegelijk, op twee VM's.
+
+**1. Herhalingen (openllm-VM, `keten5.sh`, gestart 26-11 23:19 UTC)**: de top drie (Qwen3.5 4B `direct` en `manual`,
+Gemma 4 E2B `multi`) op dezelfde 20 cases, 3 herhalingen per case bij temperatuur 0,7, seeds 1, 2 en 3. Verder alles
+als in de metingen van 24/25-11. Daarvoor kreeg `bench/run.py` de optie `--temperature` (standaard 0, zoals altijd),
+en draait herhaling n nu met seed + n - 1; de seed staat in elke regel. Zonder die wijziging gaf `--repeats` bij
+dezelfde seed dezelfde run. Dit meet hoe stabiel een variant is als het model niet steeds het waarschijnlijkste
+token kiest. Het verkleint de marge door het kleine aantal cases niet. Verwacht: ongeveer 6 uur.
+
+**2. Grotere dataset (GRFICS-VM)**: een nieuwe opname met dezelfde drie lezende scenario's, maar elk 10 keer in
+plaats van 3, en 250 seconden basislijn in plaats van 100. Dat geeft ongeveer 30 valid-cases en 30 overtredingen
+(10 per regel). Zelfde scenario's, dus dezelfde taak met meer voorbeelden; de metingen op de oude dataset blijven
+gelden. Daarna op de openllm-VM, na de herhalingen: de top drie bij temperatuur 0, zoals de eerdere metingen.
+
+**Beperking die blijft**: de tien overtredingen per regel komen uit hetzelfde verzoek (bijvoorbeeld steeds fc 3 op
+register 10 vanaf de Kali). Ze verschillen alleen in het verkeer eromheen en in waar ze in het venster vallen. Meer
+cases verkleinen dus de toevalsmarge, maar niet de afhankelijkheid van deze drie scenario's.

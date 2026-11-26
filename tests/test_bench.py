@@ -70,6 +70,9 @@ def fake_model(messages, tools, sloppy, json_mode, lazy=False):
     return {"role": "assistant", "content": json.dumps({"tool": name, "arguments": arguments})}
 
 
+SAMPLING = []  # (temperature, seed) van elke chat-aanroep aan de nagemaakte Ollama
+
+
 class FakeOllama(http.server.BaseHTTPRequestHandler):
     def _send(self, body):
         self.send_response(200)
@@ -99,7 +102,8 @@ class FakeOllama(http.server.BaseHTTPRequestHandler):
             self._send({"model": body["model"], "answers": {"verdict": {"type": "choice", "choice": choice, "probabilities": probabilities,
                                                                        "confidence": 0.8}}, "usage": {"input_tokens": 500, "output_tokens": 1}})
             return
-        assert body["options"]["temperature"] == 0 and body["stream"] is False
+        assert body["stream"] is False
+        SAMPLING.append((body["options"]["temperature"], body["options"]["seed"]))
         message = fake_model(body["messages"], body.get("tools"), body["model"].startswith("sloppy"), body.get("format") == "json",
                              lazy=body["model"].startswith("lazy"))
         self._send({"message": message, "prompt_eval_count": 100, "eval_count": 20, "eval_duration": 2_000_000_000})
@@ -335,9 +339,18 @@ class Benchmark(unittest.TestCase):
         self.assertTrue(all(r["correct"] and r["invalid_calls"] == 1 for r in rows), rows[:2])
 
     def test_repeats_give_consistency(self):
+        SAMPLING.clear()
         rows = self.rows("--models", "good:1b", "--variants", "direct", "--cases", "4", "--repeats", "2")
         self.assertEqual(len(rows), 8)
         self.assertEqual(report.scores(rows)[3], 1.0)
+        self.assertEqual({t for t, _ in SAMPLING}, {0})  # zonder --temperature: temperatuur 0, zoals altijd
+
+    def test_each_repeat_gets_its_own_seed_at_the_chosen_temperature(self):
+        SAMPLING.clear()
+        rows = self.rows("--models", "good:1b", "--variants", "direct", "--cases", "3", "--repeats", "2", "--seed", "5",
+                         "--temperature", "0.7")
+        self.assertEqual(sorted((r["repeat"], r["seed"]) for r in rows), [(1, 5)] * 3 + [(2, 6)] * 3)
+        self.assertEqual(set(SAMPLING), {(0.7, 5), (0.7, 6)})
 
     def test_mcp_variant_uses_the_same_tools_through_the_server(self):
         try:
