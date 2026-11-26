@@ -809,3 +809,9 @@ gelden. Daarna op de openllm-VM, na de herhalingen: de top drie bij temperatuur 
 **Beperking die blijft**: de tien overtredingen per regel komen uit hetzelfde verzoek (bijvoorbeeld steeds fc 3 op
 register 10 vanaf de Kali). Ze verschillen alleen in het verkeer eromheen en in waar ze in het venster vallen. Meer
 cases verkleinen dus de toevalsmarge, maar niet de afhankelijkheid van deze drie scenario's.
+
+**Opname gedaan (2026-11-26, 23:23 UTC)**: `collect.py --repeats 10 --baseline 250` op de GRFICS-VM, 71.388
+transacties, pcap-hash `991eaa90...`. `bench.build` maakte er precies 60 cases van: 30 valid, 10 per regel, geen
+venster weggevallen. Het afgeleide beleid is identiek aan dat van 17-11. Dataset:
+[data/grfics-2026-11-27.json](../data/grfics-2026-11-27.json) (fingerprint `7f531f344ac1`). Altijd `valid` haalt hier
+50%. De meting van de top drie op deze dataset (`keten6.sh`) start op de openllm-VM zodra de herhalingen klaar zijn.
