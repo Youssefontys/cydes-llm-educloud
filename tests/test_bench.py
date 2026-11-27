@@ -361,6 +361,24 @@ class Benchmark(unittest.TestCase):
             rows = self.rows("--models", "good:1b", "--variants", "mcp", *argv)
             self.assert_perfect(rows)
 
+    def test_mcp_shows_the_model_exactly_the_native_tools(self):
+        """Het model moet via mcp woord voor woord dezelfde tools zien als via native; anders meet het verschil tussen
+        de twee varianten meer dan het protocol (zo ging het tot 2026-11-27). De volgorde van de sleutels telt niet:
+        via MCP komen ze alfabetisch terug, maar Ollama leest tools in vaste structs in en schrijft ze zelf uit."""
+        try:
+            from bench.mcp_bridge import McpBridge
+        except ImportError:
+            self.skipTest("het pakket mcp is niet geinstalleerd")
+        for dataset in (datasets.load(None, 3, 1), datasets.load(self.grfics_file, 0, 1)):
+            bridge = McpBridge(dataset)
+            try:
+                native = runners.LocalTools(dataset, dataset.cases[0]).specs()
+                self.assertEqual(json.dumps(bridge.for_case(dataset.cases[0]).specs(), sort_keys=True), json.dumps(native, sort_keys=True))
+                self.assertEqual(bridge.for_case(dataset.cases[0]).call("get_transactions", {"start": 0}),
+                                 dataset.call(dataset.cases[0], "get_transactions", {"start": 0}))
+            finally:
+                bridge.close()
+
     def test_resume_skips_a_truncated_last_line(self):
         """Een kapotte laatste regel (bv. door een harde kill tijdens het schrijven) mag opnieuw starten niet laten crashen."""
         dataset = datasets.load(None, 1, 1)

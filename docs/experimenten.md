@@ -756,8 +756,10 @@ juist beter dan `native` (10/20 tegen 3/20, en 11/20 tegen 7/20); waarom is niet
 de beschrijvingen liggen in plaats van aan het protocol. Deelvraag 2 (wat voegt MCP toe?) is met deze data dus
 niet te beantwoorden.
 
-**Herstel (nog niet gedaan)**: de MCP-server dezelfde beschrijvingen laten geven als `datasets.py`, met een test die
-de twee schema's vergelijkt, en daarna alleen `mcp` opnieuw meten voor de drie modellen (samen ongeveer 7 uur).
+**Herstel (2026-11-27)**: de MCP-server geeft zijn tools nu rechtstreeks uit `datasets.py` (low-level MCP-API in
+plaats van `MCPServer`, die zelf een schema uit de Python-functie afleidde). Een nieuwe test eist dat het model via
+`mcp` dezelfde tools ziet als via `native`; alleen de volgorde van de sleutels mag verschillen, want Ollama leest
+tools in vaste structs in. Zie "Plan: `native` tegen `mcp` op 60 cases" onderaan.
 
 ## Berekend: hoe groot is de marge met 20 cases? (2026-11-27)
 
@@ -877,3 +879,11 @@ alles als op 24/25-11. Bestand:
 - **`illegal_address` blijft bijna onvindbaar**: 0/10 en 2/10.
 - **De eenvoudigste variant is hier de beste keus**: één aanroep, geen tools, stabiel bij herhalen (zie hierboven),
   en het goedkoopst per juist oordeel.
+
+## Plan: `native` tegen `mcp` op 60 cases (2026-11-27)
+
+Nu de MCP-server dezelfde beschrijvingen geeft, kan deelvraag 2 (wat voegt MCP toe?) alsnog. Daarvoor moeten beide
+varianten met hetzelfde model op dezelfde cases draaien; `native` is op de 60 cases nog niet gemeten. `keten7.sh`
+start na `keten6.sh`: eerst Gemma 4 E2B (de `native`-winnaar, verwacht 2 à 3 uur), dan Qwen3.5 4B (verwacht ongeveer
+24 uur, want de lussen lopen vaak tot het stappenbudget). Temperatuur 0, verder als de andere metingen op 60 cases.
+Verwachting als het protocol niets toevoegt of afneemt: dezelfde oordelen, met wat extra tijd voor de MCP-server.

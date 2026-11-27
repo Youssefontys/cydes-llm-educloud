@@ -2,6 +2,10 @@
 Dezelfde functies als de andere varianten gebruiken (bench/datasets.py), alleen nu achter het Model Context Protocol.
 Stdio-transport: de benchmark start deze server zelf als proces; er gaat geen netwerkpoort open.
 
+De tools en hun beschrijvingen komen rechtstreeks uit datasets.py, zodat het model via mcp precies hetzelfde ziet als
+via native. Tot 2026-11-27 beschreef deze server de tools zelf, kaler (zie docs/experimenten.md); dat maakte het
+verschil tussen native en mcp groter dan alleen het protocol.
+
 De server kent alle cases en krijgt bij elke aanroep een case_id mee. Dat veld vult de benchmark in, het model ziet
 het niet: zo kan het model geen andere case opvragen.
 
@@ -11,43 +15,49 @@ Los te starten, voor een eigen MCP-client:
 import argparse
 import json
 
-from mcp.server.mcpserver import MCPServer  # mcp 2.x; in 1.x heette dit FastMCP
+import anyio
+from mcp import types
+from mcp.server.lowlevel import Server
+from mcp.server.stdio import stdio_server
 
 from . import datasets
 
-mcp = MCPServer("cydes-modbus")
-DATASET = None
-CASES = {}
+CASE_ID = {"type": "string", "description": "The case to look at; filled in by the benchmark."}
 
 
-def _run(case_id, name, arguments):
-    case = CASES.get(case_id)
-    if case is None:
-        return json.dumps({"error": f"unknown case {case_id!r}"})
-    return json.dumps(DATASET.call(case, name, arguments)[0])
+def input_schema(tool):
+    """Het schema uit datasets.py, met case_id als laatste veld erbij (de bridge haalt het er weer af)."""
+    params = json.loads(json.dumps(datasets.schema(tool)["function"]["parameters"]))
+    params["properties"]["case_id"] = CASE_ID
+    params["required"] = [*params["required"], "case_id"]
+    return params
 
 
-@mcp.tool(structured_output=False)
-def get_policy(case_id: str) -> str:
-    """Return the security policy the Modbus traffic must follow."""
-    return _run(case_id, "get_policy", {})
+def make_server(dataset):
+    cases = {c["id"]: c for c in dataset.cases}
+    tools = {t["name"]: t for t in dataset.tools()}
+
+    async def list_tools(ctx, params):
+        return types.ListToolsResult(tools=[types.Tool(name=t["name"], description=t["description"], input_schema=input_schema(t))
+                                            for t in tools.values()])
+
+    async def call_tool(ctx, params):
+        arguments = dict(params.arguments or {})
+        case = cases.get(arguments.pop("case_id", None))
+        if params.name not in tools:
+            result = {"error": f"unknown tool {params.name!r}"}
+        elif case is None:
+            result = {"error": "unknown case"}
+        else:
+            result = dataset.call(case, params.name, arguments)[0]
+        return types.CallToolResult(content=[types.TextContent(type="text", text=json.dumps(result))])
+
+    return Server("cydes-modbus", on_list_tools=list_tools, on_call_tool=call_tool)
 
 
-@mcp.tool(structured_output=False)
-def get_transactions(case_id: str, start: int = 0) -> str:
-    """Return up to 10 Modbus transactions of this case, starting at index 'start', and the total number."""
-    return _run(case_id, "get_transactions", {"start": start})
-
-
-# De registertool verschilt per dataset; hij wordt pas na het laden aangemeld, zodat het model alleen de juiste ziet.
-def get_register_info(case_id: str, address: int) -> str:
-    """Return what one register is, who may write it and its limits."""
-    return _run(case_id, "get_register_info", {"address": address})
-
-
-def get_register_map(case_id: str, server: str) -> str:
-    """Return the register map of one server: which tables and address ranges may be touched."""
-    return _run(case_id, "get_register_map", {"server": server})
+async def serve(server):
+    async with stdio_server() as (read, write):
+        await server.run(read, write, server.create_initialization_options())
 
 
 if __name__ == "__main__":
@@ -56,7 +66,4 @@ if __name__ == "__main__":
     parser.add_argument("--cases", type=int, default=30)
     parser.add_argument("--seed", type=int, default=1)
     args = parser.parse_args()
-    DATASET = datasets.load(args.dataset, args.cases, args.seed)
-    CASES.update({c["id"]: c for c in DATASET.cases})
-    mcp.tool(structured_output=False)(get_register_map if DATASET.name == "grfics" else get_register_info)
-    mcp.run()
+    anyio.run(serve, make_server(datasets.load(args.dataset, args.cases, args.seed)))
