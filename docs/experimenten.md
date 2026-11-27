@@ -815,3 +815,65 @@ transacties, pcap-hash `991eaa90...`. `bench.build` maakte er precies 60 cases v
 venster weggevallen. Het afgeleide beleid is identiek aan dat van 17-11. Dataset:
 [data/grfics-2026-11-27.json](../data/grfics-2026-11-27.json) (fingerprint `7f531f344ac1`). Altijd `valid` haalt hier
 50%. De meting van de top drie op deze dataset (`keten6.sh`) start op de openllm-VM zodra de herhalingen klaar zijn.
+
+## Gemeten: herhalingen bij temperatuur 0,7 (2026-11-26/27)
+
+`keten5.sh`, klaar 27-11 07:57 UTC. Dezelfde 20 cases, 3 herhalingen per case (seeds 1, 2, 3), verder alles als op
+24/25-11. Bestanden:
+[2026-11-27-herhaling-qwen3.5-4b-t0.7.jsonl](../results/2026-11-27-herhaling-qwen3.5-4b-t0.7.jsonl),
+[2026-11-27-herhaling-gemma4-e2b-t0.7.jsonl](../results/2026-11-27-herhaling-gemma4-e2b-t0.7.jsonl).
+
+| Variant | Temp. 0 | Seed 1 | Seed 2 | Seed 3 | Juist bij alle 3 | Bij geen | Wisselend | Consistent |
+|---|---|---|---|---|---|---|---|---|
+| Qwen3.5 4B `direct` | 13/20 | 13/20 | 13/20 | 13/20 | 13 | 7 | 0 | 100% |
+| Qwen3.5 4B `manual` | 14/20 | 7/20 | 14/20 | 9/20 | 4 | 6 | 10 | 25% |
+| Gemma 4 E2B `multi` | 15/20 | 6/20 | 7/20 | 9/20 | 2 | 5 | 13 | 10% |
+
+**Uitkomst: de twee beste tool-varianten zijn niet stabiel; `direct` wel.**
+
+- **`direct` geeft drie keer precies hetzelfde oordeel op elke case**, en hetzelfde als bij temperatuur 0. De
+  temperatuur werkt wel: geen enkele `reason` is bij twee seeds woordelijk gelijk. Het waarschijnlijkste oordeel wint
+  ruim genoeg om niet om te slaan.
+- **Gemma `multi` zakt van 15/20 naar gemiddeld 7,3/20 (37%)**, onder altijd `valid` (55%). Op maar 2 van de 20
+  cases is het bij alle drie de seeds goed. Er komen vals alarmen bij (tot 4/11 per seed) en 15 keer geen oordeel,
+  deels door het stappenbudget (de reviewer loopt vast), deels door een verdict dat niet bestaat.
+- **Qwen `manual` zakt naar gemiddeld 10/20 (50%)**, met een grote spreiding: 7, 14 en 9. Seed 1 liep zes keer vast
+  op 12 stappen; seed 3 gaf vijf keer vals alarm. Dat seed 2 precies de 14/20 van temperatuur 0 haalt, is toeval.
+
+**Wat dit betekent**: bij temperatuur 0 volgt een tool-lus steeds hetzelfde pad. Voor Gemma `multi` en Qwen `manual`
+bleek dat op deze 20 cases toevallig een goed pad. Een kleine verandering vroeg in de lus (een andere aanroep, een
+andere formulering) stuurt de rest van de run een andere kant op, en dat gaat vaker mis dan goed. `direct` heeft
+geen lus en dus geen pad om van af te raken. De score van een tool-variant bij temperatuur 0 is daarmee reproduceerbaar,
+maar broos: hij hangt af van details die niets met de taak te maken hebben. Dat telt mee voor "in hoeverre bruikbaar".
+
+**Kanttekening bij de tijden**: herhaling 2 en 3 van `direct` duurden 9 seconden in plaats van ruim 80. Ollama
+hergebruikt het al verwerkte begin van een identieke prompt; bij `direct` is de hele prompt per case gelijk. De tijden
+en CPU-seconden van herhalingen zijn dus niet te vergelijken met een eerste run.
+
+## Gemeten: de top drie op 60 cases (2026-11-27)
+
+`keten6.sh`, gestart 27-11 07:58 UTC. Dataset van 27-11 (60 cases: 30 valid, 10 per regel), temperatuur 0, verder
+alles als op 24/25-11. Bestand:
+[2026-11-27-qwen3.5-4b-60cases.jsonl](../results/2026-11-27-qwen3.5-4b-60cases.jsonl). Gemma `multi` loopt nog.
+
+| Variant | Juist | 95%-interval | unknown_client | forbidden_function | illegal_address | Vals alarm | Geen oordeel | Balanced acc. | CPU-s per juist |
+|---|---|---|---|---|---|---|---|---|---|
+| Qwen3.5 4B `direct` | 44/60 | 37-50 | 7/10 | 9/10 | 0/10 | 2/30 | 0 | 73% | 454 |
+| Qwen3.5 4B `manual` | 42/60 | 35-49 | 0/10 | 10/10 | 2/10 | 0/30 | 0 | 70% | 630 |
+| altijd `valid` | 30/60 | 22-38 | 0/10 | 0/10 | 0/10 | 0/30 | 0 | 50% | 0 |
+
+| Vergelijking (A tegen B) | Alleen A juist | Alleen B juist | p (McNemar, exact) |
+|---|---|---|---|
+| `direct` tegen altijd `valid` | 16 | 2 | 0,001 |
+| `manual` tegen altijd `valid` | 12 | 0 | 0,0005 |
+| `direct` tegen `manual` | 7 | 5 | 0,77 |
+
+**Uitkomst (Qwen3.5 4B)**:
+
+- **Voor het eerst een significant verschil met altijd `valid`**, voor beide varianten. Op 20 cases kon dat niet.
+- **De scores van 20 cases hielden stand**: `direct` 65% → 73%, `manual` 70% → 70%.
+- **`direct` en `manual` zijn even goed, maar vinden iets anders.** `direct` vindt 7 van de 10 `unknown_client`,
+  `manual` geen enkele. `manual` vindt als enige `illegal_address` (2/10) en heeft geen vals alarm.
+- **`illegal_address` blijft bijna onvindbaar**: 0/10 en 2/10.
+- **De eenvoudigste variant is hier de beste keus**: één aanroep, geen tools, stabiel bij herhalen (zie hierboven),
+  en het goedkoopst per juist oordeel.
