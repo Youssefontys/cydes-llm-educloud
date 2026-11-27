@@ -15,8 +15,9 @@ draaien lokaal in Ollama. Het bewijs komt uit GRFICSv3, een nagebootste fabriek 
 | 3. Maken meerdere agents het beter? | `multi` (variant C): een analist en een reviewer |
 
 **Status:** de benchmark draait op Educloud, op een dataset uit GRFICS van 2026-11-17. De metingen die tellen staan
-onder [Metingen](#metingen), met datum. De beste tot nu toe (2026-11-25): Gemma 4 E2B via `multi`, 15 van de 20 cases
-juist en geen vals alarm. Let op: `native` en `mcp` zijn nog niet zuiver te vergelijken, zie
+onder [Metingen](#metingen), met datum. De hoofdmeting (2026-11-27, 60 cases): Qwen3.5 4B haalt via `direct` 44/60 en via
+`manual` 42/60, beide significant beter dan altijd `valid` (30/60) en onderling gelijk. Gemma 4 E2B via `multi`, op 20
+cases nog de beste, komt op 32/60 en is niet beter dan altijd `valid`. `native` tegen `mcp` op 60 cases loopt. Zie
 [docs/experimenten.md](docs/experimenten.md).
 
 ## De taak: Modbus-verkeer bij de PLC toetsen aan een beleid
@@ -248,6 +249,8 @@ Waarom we iets probeerden, en wat dat liet zien: [docs/experimenten.md](docs/exp
 | 2026-11-24 | Large Instance (4 CPU, 16 GB) | qwen3.5:4b-q4_K_M | grfics-2026-11-17.json (20 cases) | [results/2026-11-24-qwen3.5-4b-4cpu.jsonl](results/2026-11-24-qwen3.5-4b-4cpu.jsonl) | architectuurvergelijking; zie hieronder |
 | 2026-11-24 | Large Instance (4 CPU, 16 GB) | qwen2.5:3b | grfics-2026-11-17.json (20 cases) | [results/2026-11-24-qwen2.5-3b-4cpu.jsonl](results/2026-11-24-qwen2.5-3b-4cpu.jsonl) | architectuurvergelijking; zie hieronder |
 | 2026-11-25 | Large Instance (4 CPU, 16 GB) | gemma4:e2b-it-qat | grfics-2026-11-17.json (20 cases) | [results/2026-11-24-gemma4-e2b-4cpu.jsonl](results/2026-11-24-gemma4-e2b-4cpu.jsonl) | `native`-winnaar in `native`, `mcp`, `multi`; zie hieronder |
+| 2026-11-27 | Large Instance (4 CPU, 16 GB) | qwen3.5:4b-q4_K_M, gemma4:e2b-it-qat | grfics-2026-11-17.json (20 cases) | [herhaling Qwen](results/2026-11-27-herhaling-qwen3.5-4b-t0.7.jsonl), [herhaling Gemma](results/2026-11-27-herhaling-gemma4-e2b-t0.7.jsonl) | 3 herhalingen bij temperatuur 0,7: alleen `direct` stabiel; zie [docs/experimenten.md](docs/experimenten.md) |
+| 2026-11-27 | Large Instance (4 CPU, 16 GB) | qwen3.5:4b-q4_K_M, gemma4:e2b-it-qat | grfics-2026-11-27.json (60 cases) | [Qwen](results/2026-11-27-qwen3.5-4b-60cases.jsonl), [Gemma](results/2026-11-27-gemma4-e2b-60cases.jsonl) | **hoofdmeting**; zie [docs/experimenten.md](docs/experimenten.md) |
 
 Een proefrun telt niet als meting: die is om te zien dat de keten werkt. Zet bij een meting die telt het JSONL-bestand
 in git (`git add -f results/<naam>.jsonl`) en de tabellen van `bench.report` hieronder.

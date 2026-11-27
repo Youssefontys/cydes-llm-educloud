@@ -856,12 +856,14 @@ en CPU-seconden van herhalingen zijn dus niet te vergelijken met een eerste run.
 
 `keten6.sh`, gestart 27-11 07:58 UTC. Dataset van 27-11 (60 cases: 30 valid, 10 per regel), temperatuur 0, verder
 alles als op 24/25-11. Bestand:
-[2026-11-27-qwen3.5-4b-60cases.jsonl](../results/2026-11-27-qwen3.5-4b-60cases.jsonl). Gemma `multi` loopt nog.
+[2026-11-27-qwen3.5-4b-60cases.jsonl](../results/2026-11-27-qwen3.5-4b-60cases.jsonl),
+[2026-11-27-gemma4-e2b-60cases.jsonl](../results/2026-11-27-gemma4-e2b-60cases.jsonl) (klaar 27-11 13:56 UTC).
 
 | Variant | Juist | 95%-interval | unknown_client | forbidden_function | illegal_address | Vals alarm | Geen oordeel | Balanced acc. | CPU-s per juist |
 |---|---|---|---|---|---|---|---|---|---|
 | Qwen3.5 4B `direct` | 44/60 | 37-50 | 7/10 | 9/10 | 0/10 | 2/30 | 0 | 73% | 454 |
 | Qwen3.5 4B `manual` | 42/60 | 35-49 | 0/10 | 10/10 | 2/10 | 0/30 | 0 | 70% | 630 |
+| Gemma 4 E2B `multi` | 32/60 | 24-39 | 0/10 | 10/10 | 3/10 | 6/30 | 7 | 53% | 1.217 |
 | altijd `valid` | 30/60 | 22-38 | 0/10 | 0/10 | 0/10 | 0/30 | 0 | 50% | 0 |
 
 | Vergelijking (A tegen B) | Alleen A juist | Alleen B juist | p (McNemar, exact) |
@@ -869,6 +871,9 @@ alles als op 24/25-11. Bestand:
 | `direct` tegen altijd `valid` | 16 | 2 | 0,001 |
 | `manual` tegen altijd `valid` | 12 | 0 | 0,0005 |
 | `direct` tegen `manual` | 7 | 5 | 0,77 |
+| Gemma `multi` tegen altijd `valid` | 13 | 11 | 0,84 |
+| Gemma `multi` tegen `direct` | 6 | 18 | 0,023 |
+| Gemma `multi` tegen `manual` | 3 | 13 | 0,021 |
 
 **Uitkomst (Qwen3.5 4B)**:
 
@@ -887,3 +892,10 @@ varianten met hetzelfde model op dezelfde cases draaien; `native` is op de 60 ca
 start na `keten6.sh`: eerst Gemma 4 E2B (de `native`-winnaar, verwacht 2 à 3 uur), dan Qwen3.5 4B (verwacht ongeveer
 24 uur, want de lussen lopen vaak tot het stappenbudget). Temperatuur 0, verder als de andere metingen op 60 cases.
 Verwachting als het protocol niets toevoegt of afneemt: dezelfde oordelen, met wat extra tijd voor de MCP-server.
+
+**Uitkomst (Gemma 4 E2B `multi`)**: 32/60, niet beter dan altijd `valid` (p = 0,84) en significant slechter dan Qwen3.5
+4B via `direct` en `manual`. Het vindt de meeste `illegal_address` (3/10) en in totaal 13 van de 30 overtredingen, maar
+raakt 11 van de 30 valid-cases kwijt: 6 vals alarm (4 keer `unknown_client`, 2 keer `unauthorized_write`) en 5 keer
+een verdict dat niet bestaat. De 15/20 op de kleine dataset was dus een overschatting, net als de herhalingen al
+lieten zien. De uitwerking voor het verslag staat in een apart concept (methode, deelvraag 1 en 3, en de les van de
+20 cases); deelvraag 2 volgt na `keten7.sh`.
